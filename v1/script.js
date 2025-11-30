@@ -40,29 +40,32 @@ document.querySelectorAll('.menu-item').forEach(item => {
     }
 });
 
-// Handle mailto links in iframe - use postMessage to communicate with parent
+// Handle mailto links - open directly in top window to preserve user gesture
 document.querySelectorAll('a[data-mailto], a[href^="mailto:"]').forEach(link => {
     link.addEventListener('click', function(e) {
         e.preventDefault();
         const mailtoUrl = this.getAttribute('href') || this.href;
         
-        // If in iframe, send message to parent (must be synchronous with user gesture)
-        if (window.parent && window.parent !== window) {
+        // If in iframe, try to open in top window (preserves user gesture)
+        if (window.top && window.top !== window) {
             try {
-                window.parent.postMessage({
-                    type: 'mailto',
-                    url: mailtoUrl
-                }, '*');
+                // Try top window first (most reliable with user gestures)
+                window.top.location.href = mailtoUrl;
             } catch (error) {
-                // If postMessage fails, try direct navigation immediately (within user gesture)
+                // If cross-origin blocked, try parent window
                 try {
-                    window.location.href = mailtoUrl;
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'mailto',
+                            url: mailtoUrl
+                        }, '*');
+                    }
                 } catch (err) {
                     console.error('Could not open mailto link:', err);
                 }
             }
         } else {
-            // Not in iframe, use direct navigation immediately (within user gesture)
+            // Not in iframe, open directly
             try {
                 window.location.href = mailtoUrl;
             } catch (err) {
