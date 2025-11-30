@@ -40,49 +40,36 @@ document.querySelectorAll('.menu-item').forEach(item => {
     }
 });
 
-// Handle mailto links - try direct navigation first, use postMessage as fallback
+// Handle mailto links - open directly in top window to preserve user gesture
 document.querySelectorAll('a[data-mailto], a[href^="mailto:"]').forEach(link => {
     link.addEventListener('click', function(e) {
+        e.preventDefault();
         const mailtoUrl = this.getAttribute('href') || this.href;
         
-        // Try direct navigation first (works best with user gestures)
-        // If in iframe, this might be blocked, so we'll fall back to postMessage
-        try {
-            // Create anchor and click it immediately (preserves user gesture)
-            const mailLink = document.createElement('a');
-            mailLink.href = mailtoUrl;
-            mailLink.style.display = 'none';
-            document.body.appendChild(mailLink);
-            mailLink.click();
-            
-            // Clean up
-            setTimeout(() => {
-                if (document.body.contains(mailLink)) {
-                    document.body.removeChild(mailLink);
-                }
-            }, 100);
-            
-            // Prevent default to avoid double-triggering
-            e.preventDefault();
-        } catch (error) {
-            // If direct navigation fails (e.g., in iframe), try postMessage
-            e.preventDefault();
-            if (window.parent && window.parent !== window) {
+        // If in iframe, try to open in top window (preserves user gesture)
+        if (window.top && window.top !== window) {
+            try {
+                // Try top window first (most reliable with user gestures)
+                window.top.location.href = mailtoUrl;
+            } catch (error) {
+                // If cross-origin blocked, try parent window
                 try {
-                    window.parent.postMessage({
-                        type: 'mailto',
-                        url: mailtoUrl
-                    }, '*');
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'mailto',
+                            url: mailtoUrl
+                        }, '*');
+                    }
                 } catch (err) {
                     console.error('Could not open mailto link:', err);
                 }
-            } else {
-                // Last resort: try window.location
-                try {
-                    window.location.href = mailtoUrl;
-                } catch (err) {
-                    console.error('Could not open mailto link:', err);
-                }
+            }
+        } else {
+            // Not in iframe, open directly
+            try {
+                window.location.href = mailtoUrl;
+            } catch (err) {
+                console.error('Could not open mailto link:', err);
             }
         }
     });
