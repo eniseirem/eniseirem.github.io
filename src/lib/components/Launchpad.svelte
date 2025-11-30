@@ -1,13 +1,15 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { fade, scale } from 'svelte/transition';
-  import photos from '$lib/assets/icons/photos.avif'; 
   import terminal from '$lib/assets/icons/terminal.avif';
   import safari from '$lib/assets/icons/safari.png';
   import projects from '$lib/assets/icons/projects.png';
   import blog from '$lib/assets/icons/blog.png';
   import github from '$lib/assets/icons/github.png';
-  import clave from '$lib/assets/icons/clave.png';
+  import books from '$lib/assets/icons/books.png';
+  import resume from '$lib/assets/icons/resume.png';
+  import contact from '$lib/assets/icons/contact.png';
+  import games from '$lib/assets/icons/games.png';
   
   export let isOpen: boolean;
   const dispatch = createEventDispatcher();
@@ -16,13 +18,15 @@
   let searchFocused = false;
 
   const apps = [
-    { id: 'photos', name: 'Photos', icon: photos },
     { id: 'terminal', name: 'Terminal', icon: terminal },
     { id: 'safari', name: 'Safari', icon: safari },
     { id: 'projects', name: 'Projects', icon: projects },
+    { id: 'resume', name: 'Resume', icon: resume },
+    { id: 'books', name: 'Books', icon: books },
     { id: 'blog', name: 'Blog', icon: blog },
-    { id: 'github', name: 'Github', icon: github },
-    {id: 'clave', name:'Clave', icon: clave}
+    { id: 'contact', name: 'Contact', icon: contact },
+    { id: 'games', name: 'Games', icon: games },
+    { id: 'github', name: 'Github', icon: github }
   ];
 
   $: filteredApps = apps.filter(app => 
@@ -38,7 +42,8 @@
 
 {#if isOpen}
   <div 
-    class="fixed inset-0 z-50 bg-black/30 backdrop-blur-2xl font-sf"
+    class="fixed inset-0 bg-black/30 backdrop-blur-2xl font-sf"
+    style="z-index: 10000;"
     transition:fade={{ duration: 200 }}
     on:click={() => dispatch('closeLaunchpad')}
   >

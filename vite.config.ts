@@ -7,6 +7,10 @@ export default defineConfig({
 		host: '0.0.0.0',
 		port: 1111
 	},
+	preview: {
+		port: 4173,
+		host: '0.0.0.0'
+	},
 	resolve: {
 		alias: {
 			$lib: '/src/lib'

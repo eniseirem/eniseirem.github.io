@@ -1,7 +1,6 @@
+import { portfolio } from './portfolioData';
+
 export interface Developer {
-  // name: string;
-  // role: string;
-  // company: string;
   about: string;
   code: string[];
   interests: string[];
@@ -10,20 +9,22 @@ export interface Developer {
   ides: string[];
 }
 
-export const ansxuman: Developer = {
-  // name: "Anshuman",
-  // role: "Product Engineer",
-  // company: "InstaSafe",
-  about: "Hey, I'm Anshuman, a Software Developer with a keen interest in building scalable \nand secure applications.Always eager to learn and experiment with new technologies.",
-  code: ["Golang", "Svelte", "Angular", "TS", "JS", "Java", "Swift", "Rust", "Python"],
-  interests: [
-    "Full-Stack Development",
-    "Cybersecurity",
-    "DevOps",
-    "Writing Blogs",
-    "Experimenting with New Technologies",
-  ],
-  operatingSystems: ["macOS 15 Sequoia", "Debian Bookworm", "Ubuntu"],
-  toolsUsed: ["Docker", "Git", "Parallels", "Termius", "Postman"],
-  ides: ["Cursor", "Zed", "VSCode", "Android Studio", "Xcode", "Neovim"],
+// Extract languages from techStack
+const languages = portfolio.techStack.languages.map(lang => lang.name);
+// Combine all tech tools
+const allTools = [
+  ...portfolio.techStack.mlFrameworks,
+  ...portfolio.techStack.webFrameworks,
+  ...portfolio.techStack.tools
+];
+
+export const developer: Developer = {
+  about: portfolio.bio.full,
+  code: languages,
+  interests: portfolio.researchInterests,
+  operatingSystems: portfolio.systemInfo.find(info => info.label === "OS")?.value ? 
+    [portfolio.systemInfo.find(info => info.label === "OS")!.value] : 
+    ["Mac OS 9.2.1 (Retro Edition)"],
+  toolsUsed: allTools,
+  ides: ["Cursor", "VSCode", "Jupyter", "PyCharm"],
 };

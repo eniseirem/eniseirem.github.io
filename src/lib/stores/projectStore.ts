@@ -1,57 +1,83 @@
 import { writable } from 'svelte/store';
 import type { ProjectData } from '../types/projectType';
+import { portfolio } from '../utils/portfolioData';
+
+// Helper function to create project ID from title
+function createProjectId(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// Helper function to get GitHub URL from project links - only if it exists
+function getGitHubUrl(project: any): string {
+  if (project.links?.github) {
+    return project.links.github;
+  }
+  // Return empty string if no GitHub link exists - don't generate fake URLs
+  return '';
+}
+
+// Helper function to get README URL - only if GitHub URL exists
+// Tries multiple common branch names
+function getReadmeUrl(project: any): string {
+  const githubUrl = getGitHubUrl(project);
+  if (githubUrl && githubUrl.includes('github.com')) {
+    const repoPath = githubUrl.replace('https://github.com/', '').replace(/\/$/, '');
+    // Try main branch first, then master (common alternatives)
+    // The component will handle 404s gracefully
+    return `https://raw.githubusercontent.com/${repoPath}/main/README.md`;
+  }
+  return '';
+}
+
+// Helper function to extract year for sorting
+function getYearForSorting(year?: string): number {
+  if (!year) return 0; // Ongoing projects without year go to top
+  if (year.includes('Present') || year.includes('Ongoing')) return 9999; // Ongoing projects at top
+  // Extract first year from strings like "2022-Present" or just "2025"
+  const yearMatch = year.match(/\d{4}/);
+  return yearMatch ? parseInt(yearMatch[0]) : 0;
+}
+
+// Map all projects from portfolio data
+const mapProjects = (projectList: any[], type: string): ProjectData[] => {
+  return projectList.map(project => ({
+    id: createProjectId(project.title),
+    name: project.title,
+    icon: project.icon || 'code',
+    shortDescription: project.description,
+    githubUrl: getGitHubUrl(project),
+    readmeUrl: getReadmeUrl(project),
+    technologies: project.tech || [],
+    type: type,
+    status: project.status || undefined,
+    year: project.year || undefined
+  }));
+};
 
 const initialProjects: ProjectData[] = [
-  {
-    id: 'Clave',
-    name: 'Clave',
-    icon: 'wails',
-    shortDescription: 'A lightweight cross-platform desktop authenticator app',
-    githubUrl: 'https://github.com/ansxuman/clave',
-    readmeUrl: 'https://raw.githubusercontent.com/ansxuman/clave/main/README.md',
-    technologies: ['Go','Wails','Svelte', 'TypeScript', 'TailwindCSS'],
-    type: 'application'
-  },
-  {
-    id: 'macOS-Themed-Portfolio',
-    name: 'macOS Themed Portfolio',
-    icon: 'svelte',
-    shortDescription: 'An interactive portfolio website inspired by the macOS interface, built with SvelteKit, TailwindCSS, and TypeScript.',
-    githubUrl: 'https://github.com/ansxuman/macOS-Themed-Portfolio',
-    readmeUrl: 'https://raw.githubusercontent.com/ansxuman/macOS-Themed-Portfolio/main/README.md',
-    technologies: ['Svelte', 'TypeScript', 'TailwindCSS'],
-    type: 'application'
-  },
-  {
-    id: 'go-service',
-    name: 'Go Service',
-    icon: 'go',
-    shortDescription: 'A minimal boilerplate for building cross-platform system services in Go',
-    githubUrl: 'https://github.com/ansxuman/go-service',
-    readmeUrl: 'https://raw.githubusercontent.com/ansxuman/go-service/main/README.md',
-    technologies: ['Go'],
-    type: 'library'
-  },
-  {
-    id: 'go-touchid',
-    name: 'Go TouchID',
-    icon: 'go',
-    shortDescription: 'A simple Go Library for Touch ID authentication on darwin.',
-    githubUrl: 'https://github.com/ansxuman/go-touchid',
-    readmeUrl: 'https://raw.githubusercontent.com/ansxuman/go-touchid/main/README.md',
-    technologies: ['Go', 'macOS', 'TouchID'],
-    type: 'library'
-  },
-  {
-    id: 'go-version-compare',
-    name: 'Go Version Compare',
-    icon: 'go',
-    shortDescription: 'Go Library for Version Comparison',
-    githubUrl: 'https://github.com/ansxuman/versioncompare',
-    readmeUrl: 'https://raw.githubusercontent.com/ansxuman/versioncompare/main/README.md',
-    technologies: ['Go'],
-    type: 'library'
-  },
+  ...mapProjects(portfolio.projects.professional, 'professional'),
+  ...mapProjects(portfolio.projects.academic, 'academic'),
+  ...mapProjects(portfolio.projects.personal, 'personal'),
+  ...mapProjects(portfolio.projects.research, 'research'),
 ];
 
-export const projects = writable<ProjectData[]>(initialProjects);
+// Sort projects: Ongoing/status projects first, then by year (newest first)
+const sortedProjects = initialProjects.sort((a, b) => {
+  // First, prioritize ongoing/status projects
+  const aIsOngoing = a.status === 'Ongoing' || a.year?.includes('Present') || a.year?.includes('Ongoing');
+  const bIsOngoing = b.status === 'Ongoing' || b.year?.includes('Present') || b.year?.includes('Ongoing');
+  
+  if (aIsOngoing && !bIsOngoing) return -1;
+  if (!aIsOngoing && bIsOngoing) return 1;
+  
+  // If both are ongoing or both are not, sort by year (newest first)
+  const aYear = getYearForSorting(a.year);
+  const bYear = getYearForSorting(b.year);
+  
+  // If both have no year, maintain original order
+  if (aYear === 0 && bYear === 0) return 0;
+  
+  return bYear - aYear;
+});
+
+export const projects = writable<ProjectData[]>(sortedProjects);

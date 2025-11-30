@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-portfolio="title">Enise İrem Çolak - Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor"></div>
+    
+    <div class="pixel-decoration" style="top: 10%; left: 5%;">💾</div>
+    <div class="pixel-decoration" style="top: 20%; right: 8%; animation-delay: 1s;">📎</div>
+    <div class="pixel-decoration" style="bottom: 15%; left: 10%; animation-delay: 2s;">✨</div>
+    <div class="pixel-decoration" style="bottom: 25%; right: 15%; animation-delay: 1.5s;">💖</div>
+
+    <div class="mac-window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="window-buttons">
+                <div class="window-btn close"></div>
+                <div class="window-btn minimize"></div>
+                <div class="window-btn maximize"></div>
+            </div>
+            <div class="title-text" data-portfolio="title-text">enise-irem-colak.homepage</div>
+            <div class="avatar-mini"></div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <div class="menu-bar">
+            <a href="index.html" class="menu-item active">🏠 Home</a>
+            <a href="resume.html" class="menu-item">📄 Resume</a>
+            <a href="projects.html" class="menu-item">💼 Projects</a>
+            <a href="contact.html" class="menu-item">💌 Contact</a>
+        </div>
+        
+        
+        <!-- Main Content -->
+        <div class="content-section">
+            <!-- About Me Section -->
+            <div class="finder-panel">
+                <div class="panel-header">📁 Welcome — Finder</div>
+                <div class="panel-content">
+                    <div class="sidebar">
+                        <img src="images/pp.jpg" alt="Profile Photo" class="profile-photo">
+                        <div class="info-item">
+                            <span class="info-label">Name:</span>
+                            <span data-portfolio="name-pronunciation">Enise "eh-ne-seeh"</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Location:</span>
+                            <span data-portfolio="location">Berlin, DE 🇩🇪<br>Istanbul, TR 🇹🇷</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Role:</span>
+                            <span data-portfolio="role">Data Scientist</span>
+                        </div>
+                        <div class="social-links">
+                            <a href="https://github.com/eniseirem" class="social-link" target="_blank" data-portfolio="github">💻 GitHub</a>
+                            <a href="https://www.linkedin.com/in/eniseirem/" class="social-link" target="_blank" data-portfolio="linkedin">💼 LinkedIn</a>
+                            <a href="mailto:eniseirem.de@gmail.com" class="social-link" data-mailto data-portfolio="email">📧 Email</a>
+                        </div>
+                    </div>
+                    
+                    <div class="main-content">
+                        <h2>Hello! Welcome to my digital space ✨</h2>
+                        <div data-portfolio="bio-full">
+                            <!-- Bio content will be loaded dynamically -->
+                        </div>
+                        
+                        <p><strong>🔬 Research Interests:</strong></p>
+                        <ul data-portfolio="research-interests">
+                            <!-- Research interests will be loaded dynamically -->
+                        </ul>
+                        <p><strong> Reading List:</strong></p>
+                        <ul data-portfolio="currently-reading">
+                            <!-- Currently reading will be loaded dynamically -->
+                        </ul>
+                        <div class="system-info">
+                            <div style="font-weight: bold; margin-bottom: 10px; color: #FF69B4;">⚙️ System Info</div>
+                            <div class="system-row" data-portfolio="system-info-0">
+                                <div class="system-icon">🧠</div>
+                                <div>CPU: Neural Networks & Turkish Coffee ☕</div>
+                            </div>
+                            <div class="system-row" data-portfolio="system-info-1">
+                                <div class="system-icon">💾</div>
+                                <div>RAM: Infinite Curiosity for Data</div>
+                            </div>
+                            <div class="system-row" data-portfolio="system-info-2">
+                                <div class="system-icon">💿</div>
+                                <div>OS: Mac OS 9.2.1 (Retro Edition)</div>
+                            </div>
+                            <div class="system-row" data-portfolio="system-info-3">
+                                <div class="system-icon">📍</div>
+                                <div data-portfolio="system-info-3-value">Ping: Istanbul ↔ Berlin</div>
+                            </div>
+                            <div class="system-row" data-portfolio="system-info-4">
+                                <div class="system-icon">✨</div>
+                                <div>Status: Building & Learning</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                <p data-portfolio="footer-tagline">Made with 💖 between Istanbul & Berlin • Designed in the spirit of Mac OS 9</p>
+                <p style="margin-top: 8px;" data-portfolio="footer-copyright">© 2025 Enise İrem Çolak • All rights reserved</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- First Visit Popup -->
+    <div id="firstVisitPopup" class="popup-overlay hidden">
+        <div class="popup-modal">
+            <div class="popup-title-bar">
+                <div class="popup-close-btn" id="closePopup">✕</div>
+                <div class="popup-title-text">💻 Desktop Experience Notice</div>
+                <div style="width: 18px;"></div>
+            </div>
+            <div class="popup-content">
+                <div class="popup-icon">🖥️</div>
+                <div class="popup-text">
+                    <strong>Hey there! 👋</strong><br><br>
+                    You're viewing the mobile version of my portfolio. 
+                    If you visit this website on a <strong>desktop or laptop</strong>, 
+                    you'll experience a completely different interface with a 
+                    <strong>macOS-style desktop</strong> featuring draggable windows, 
+                    a dock, and interactive apps! 🎨
+                </div>
+                <button class="popup-button" id="dismissPopup">Got it! ✨</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script src="portfolio-loader.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>

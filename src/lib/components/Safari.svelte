@@ -2,11 +2,13 @@
   import type { wType } from "../types/wType";
   import { closeWindow, toggleMinimize, toggleMaximize } from "../stores/windowStore";
   import { onMount } from "svelte";
+  import { base } from "$app/paths";
   
   export let startDrag: (e: MouseEvent, id: string, action: 'move' | 'resize') => void;
   export let window: wType;
 
   let url = "";
+  let displayUrl = "";
   let iframeUrl = "";
   let isLoading = false;
   let canGoBack = false;
@@ -14,19 +16,65 @@
   let iframeElement: HTMLIFrameElement;
   let showHomepage = true;
 
+  function formatDisplayUrl(actualUrl: string): string {
+    // Extract path from full URL if needed
+    let path = actualUrl;
+    try {
+      const urlObj = new URL(actualUrl);
+      path = urlObj.pathname;
+    } catch (e) {
+      // Not a full URL, use as is
+    }
+    
+    // Strip base path if present (for GitHub Pages subdirectory)
+    if (base && path.startsWith(base)) {
+      path = path.substring(base.length) || '/';
+    }
+    
+    // Convert v1 paths to enise.com format
+    if (path.startsWith('/v1/') || path === '/v1') {
+      const relativePath = path.replace('/v1', '') || '/index.html';
+      if (relativePath === '/index.html' || relativePath === '/') {
+        return 'enise.com';
+      }
+      return `enise.com${relativePath}`;
+    }
+    return actualUrl;
+  }
+
   function handleSubmit() {
-    if (url) {
-      navigateTo(url);
+    if (displayUrl) {
+      // Convert enise.com format back to actual path
+      let actualUrl = displayUrl;
+      if (displayUrl.startsWith('enise.com')) {
+        const path = displayUrl.replace('enise.com', '/v1');
+        actualUrl = path === '/v1' ? '/v1/index.html' : path;
+      }
+      // navigateTo will handle base path prepending
+      navigateTo(actualUrl);
     }
   }
 
   function navigateTo(newUrl: string) {
+    // Handle local paths (starting with /)
+    if (newUrl.startsWith('/')) {
+      // Local path - prepend base path if needed for GitHub Pages
+      const fullPath = base ? `${base}${newUrl}` : newUrl;
+      isLoading = true;
+      iframeUrl = fullPath;
+      url = fullPath;
+      displayUrl = formatDisplayUrl(newUrl); // Use original path for display formatting
+      showHomepage = false;
+      return;
+    }
+    // Handle external URLs
     if (!newUrl.startsWith('http://') && !newUrl.startsWith('https://')) {
       newUrl = 'https://' + newUrl;
     }
     isLoading = true;
     iframeUrl = newUrl;
     url = newUrl;
+    displayUrl = newUrl;
     showHomepage = false;
   }
 
@@ -58,14 +106,49 @@
   function goHome() {
     iframeUrl = "";
     url = "";
+    displayUrl = "";
     isLoading = false;
     showHomepage = true;
+  }
+
+  function openMailApp(mailtoUrl: string) {
+    // Create a temporary anchor element and click it to open Mail app
+    // This is the most reliable way to open mailto links
+    try {
+      const mailLink = document.createElement('a');
+      mailLink.href = mailtoUrl;
+      mailLink.style.display = 'none';
+      document.body.appendChild(mailLink);
+      mailLink.click();
+      // Remove the element after a short delay
+      setTimeout(() => {
+        if (document.body.contains(mailLink)) {
+          document.body.removeChild(mailLink);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error opening mailto link:', error);
+      // Fallback: try using window.location
+      if (typeof globalThis !== 'undefined' && globalThis.window) {
+        globalThis.window.location.href = mailtoUrl;
+      }
+    }
   }
 
   onMount(() => {
   const handleMessage = (event: MessageEvent) => {
     if (event.data.type === 'navigate') {
       navigateTo(event.data.url);
+    }
+    if (event.data.type === 'mailto') {
+      // Handle mailto links from iframe - open Mail app
+      openMailApp(event.data.url);
+    }
+    if (event.data.type === 'openLink') {
+      // Handle external links from iframe - open in new tab
+      if (typeof globalThis !== 'undefined' && globalThis.window) {
+        globalThis.window.open(event.data.url, '_blank');
+      }
     }
   };
 
@@ -122,7 +205,7 @@
       <form on:submit|preventDefault={handleSubmit} class="flex-grow">
         <input 
           type="text" 
-          bind:value={url} 
+          bind:value={displayUrl} 
           class="w-full px-3 py-1 rounded-md bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           placeholder="Enter URL"
         />
@@ -152,6 +235,12 @@
           <button on:click={() => navigateTo('https://www.wikipedia.org')} class="bg-white text-purple-500 px-6 py-2 rounded-full hover:bg-purple-100 transition duration-200">
             Wikipedia
           </button>
+          <button on:click={() => openEndlessHorse('https://claude.ai/public/artifacts/e6bd8ab7-380b-41bb-b8d9-6e7d2c852b47')} class="bg-white text-green-500 px-6 py-2 rounded-full hover:bg-green-100 transition duration-200">
+            Terminagent Game
+          </button>
+          <button on:click={() => navigateTo('/v1/index.html')} class="bg-white text-orange-500 px-6 py-2 rounded-full hover:bg-orange-100 transition duration-200">
+            enise.com
+          </button>
         </div>
       </div>
     </div>
@@ -172,16 +261,21 @@
       on:load={() => {
         isLoading = false;
         try {
-          canGoBack = iframeElement.contentWindow?.history.length > 1;
+          const historyLength = iframeElement.contentWindow?.history.length;
+          canGoBack = (historyLength !== undefined && historyLength > 1) || false;
           canGoForward = false;
-          url = iframeElement.contentWindow?.location.href || url;
+          const actualUrl = iframeElement.contentWindow?.location.href || url;
+          url = actualUrl;
+          displayUrl = formatDisplayUrl(actualUrl);
         } catch (error) {
-          console.log('Unable to access iframe content due to security restrictions');
+          // Unable to access iframe content due to security restrictions
           canGoBack = false;
           canGoForward = false;
+          // Update display URL based on iframeUrl since we can't access location
+          displayUrl = formatDisplayUrl(iframeUrl);
         }
       }}
-      sandbox="allow-scripts allow-same-origin allow-forms"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-top-navigation allow-popups allow-popups-to-escape-sandbox"
     ></iframe>
     {/if}
   </div>

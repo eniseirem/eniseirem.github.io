@@ -7,4 +7,6 @@ export interface ProjectData {
   readmeUrl: string;
   technologies: string[];
   type: string;
+  status?: string;
+  year?: string;
   }

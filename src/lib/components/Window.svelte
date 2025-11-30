@@ -3,9 +3,12 @@
     import { focusWindow, closeWindow, toggleMinimize, toggleMaximize } from "../stores/windowStore";
     import Terminal from "./Terminal.svelte";
     import Safari from "./Safari.svelte";
-    import Photos from "./Photos.svelte";
     import Projects from "./Projects.svelte";
     import Blog from "./Blog.svelte";
+    import Books from "./Books.svelte";
+    import Resume from "./Resume.svelte";
+    import Contact from "./Contact.svelte";
+    import Games from "./Games.svelte";
   
     export let window: wType;
   
@@ -40,7 +43,7 @@
   <div
     id={window.id}
     class="absolute rounded-lg shadow-2xl overflow-hidden"
-    style="left: {window.position.x}px; top: {window.position.y}px; width: {window.size.width}px; height: {window.size.height}px; z-index: {window.zIndex};"
+    style="left: {window.position.x}px; top: {window.position.y}px; width: {window.size.width}px; height: {window.size.height}px; z-index: {window.zIndex}; pointer-events: auto; isolation: isolate; contain: layout style paint; transform: translate3d(0, 0, 0);"
     class:hidden={window.minimized}
     on:mousedown={() => focusWindow(window.id)}
   >
@@ -48,12 +51,18 @@
   <Terminal {window} {startDrag} />
 {:else if window.type === "safari"}
   <Safari {window} {startDrag} />
-{:else if window.type === "photos"}
-<Photos windowInstance={window} {startDrag} />
 {:else if window.type === "projects"} 
   <Projects {window} {startDrag} />
 {:else if window.type === "blog"}
   <Blog {window} {startDrag} />
+{:else if window.type === "books"}
+  <Books {window} {startDrag} />
+{:else if window.type === "resume"}
+  <Resume {window} {startDrag} />
+{:else if window.type === "contact"}
+  <Contact {window} {startDrag} />
+{:else if window.type === "games"}
+  <Games {window} {startDrag} />
 {/if}
     
     {#if !window.maximized}

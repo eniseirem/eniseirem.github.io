@@ -1,13 +1,14 @@
 import { writable, get } from 'svelte/store';
 import type { wType } from '../types/wType';
+import { portfolio } from '../utils/portfolioData';
 
 export const windows = writable<wType[]>([]);
-let nextZIndex = 1;
+let nextZIndex = 10; // Start at 10 to leave room for other UI elements
 
-export function addWindow(type: "terminal" | "safari" | "photos" | "blog" | "projects" | "github") {
+export function addWindow(type: "terminal" | "safari" | "blog" | "projects" | "resume" | "books" | "github" | "contact" | "games") {
 
   if (type === "github") {
-    window.open('https://github.com/ansxuman', '_blank');
+    window.open(portfolio.socialLinks.github, '_blank');
     return;
   }
 
@@ -21,8 +22,9 @@ export function addWindow(type: "terminal" | "safari" | "photos" | "blog" | "pro
     return;
   }
 
-  const windowWidth = 900;
-  const windowHeight = 600;
+  // Larger window for resume/PDF viewer, books, contact, and games
+  const windowWidth = (type === 'resume' || type === 'books' || type === 'contact' || type === 'games') ? 1000 : 900;
+  const windowHeight = (type === 'resume' || type === 'books' || type === 'contact' || type === 'games') ? 700 : 600;
   const screenWidth = window.innerWidth;
   const screenHeight = window.innerHeight;
 
@@ -92,12 +94,12 @@ export function toggleMaximize(id: string) {
   );
 }
 
-export function isAppRunning(type: 'terminal' | 'safari' | 'photos' | 'blog' | 'projects'): boolean {
+export function isAppRunning(type: 'terminal' | 'safari' | 'blog' | 'projects' | 'resume' | 'books' | 'contact' | 'games'): boolean {
   const currentWindows = get(windows);
   return currentWindows.some(w => w.type === type && !w.minimized);
 }
 
-export function isAppMinimized(type: 'terminal' | 'safari' | 'photos' | 'blog' | 'projects'): boolean {
+export function isAppMinimized(type: 'terminal' | 'safari' | 'blog' | 'projects' | 'resume' | 'books' | 'contact' | 'games'): boolean {
   const currentWindows = get(windows);
   return currentWindows.some(w => w.type === type && w.minimized);
 }

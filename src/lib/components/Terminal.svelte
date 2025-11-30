@@ -9,6 +9,10 @@
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { syncProjectsToFileSystem } from "../utils/syncProjects";
+  import { portfolio } from "../utils/portfolioData";
+
+  const username = portfolio.personalInfo.email.split('@')[0] || 'eniseirem';
+  const hostname = 'macbook';
 
   $: currentDirectoryPath = `~/${currentDirectory.join("/")}`;
 
@@ -61,7 +65,7 @@
 
   function processCommand(cmd: string) {
     addLine(
-      `<span class="text-green-400">ansxuman@macbook</span><span class="text-white">:</span><span class="text-blue-400">~/${currentDirectory.join("/")}</span><span class="text-white">$</span> ${cmd}`
+      `<span class="text-green-400">${username}@${hostname}</span><span class="text-white">:</span><span class="text-blue-400">~/${currentDirectory.join("/")}</span><span class="text-white">$</span> ${cmd}`
     );
 
     commandHistory = [cmd, ...commandHistory];
@@ -146,9 +150,6 @@
       case "echo":
         addLine(args.join(" "));
         break;
-      case "niharika":
-        addLine("🖤");
-        break;
       case "exit":
         closeWindow(window.id);
         break;
@@ -171,9 +172,33 @@
   onMount(() => {
     syncProjectsToFileSystem(fileSystem);
     showPrompt = true;
-    addLine("Welcome to ansxuman's Terminal");
+    addLine(`Welcome to ${portfolio.personalInfo.name}'s Terminal`);
     addLine('Type "help" to see available commands');
     addLine('Try "ls" to see available files and directories');
+    
+    // Automatically type and execute "cat about" after a short delay
+    // This happens on every terminal open/refresh
+    setTimeout(() => {
+      const command = 'cat about';
+      let typedChars = '';
+      
+      // Simulate typing character by character
+      const typeChar = () => {
+        if (typedChars.length < command.length) {
+          typedChars += command[typedChars.length];
+          currentInput = typedChars;
+          setTimeout(typeChar, 50); // 50ms delay between characters
+        } else {
+          // After typing is complete, execute the command
+          setTimeout(() => {
+            processCommand(command);
+            currentInput = '';
+          }, 300);
+        }
+      };
+      
+      typeChar();
+    }, 1500);
   });
 
   function handleTabCompletion() {
@@ -203,7 +228,8 @@
   }
 </script>
 
-<div class="bg-gray-900/40 backdrop-blur-md h-full border border-white/20">
+<div class="terminal-container h-full" style="isolation: isolate; contain: strict; position: relative; transform: translate3d(0, 0, 0); will-change: auto;">
+  <div class="bg-gray-900/90 h-full terminal-content" style="transform: translate3d(0, 0, 0); backface-visibility: hidden;">
   <!-- Terminal Header -->
   <div
     class="bg-gray-800/80 px-4 py-2 flex items-center cursor-move"
@@ -224,7 +250,7 @@
       ></div>
     </div>
     <div class="flex-grow text-center text-sm text-gray-400">
-      ansxuman@macbook: ~/{currentDirectory.join("/")}
+      {username}@{hostname}: ~/{currentDirectory.join("/")}
     </div>
   </div>
 
@@ -232,7 +258,7 @@
   <div
     bind:this={terminalRef}
     class="bg-black/30 p-4 overflow-y-auto"
-    style="height: calc(100% - 80px);"
+    style="height: calc(100% - 80px); overflow-x: hidden; transform: translate3d(0, 0, 0);"
   >
     {#each terminalLines as line}
       <br />
@@ -248,7 +274,7 @@
   <!-- Terminal Input -->
   {#if showPrompt}
     <div class="bg-black/30 px-4 py-2 flex items-center">
-      <span class="text-green-400 mr-1">ansxuman@macbook</span>
+      <span class="text-green-400 mr-1">{username}@{hostname}</span>
       <span class="text-white mr-1">:</span>
       <span class="text-blue-400 mr-1">~/{currentDirectory.join("/")}</span>
       <span class="text-white mr-2">$</span>
@@ -270,3 +296,30 @@
     </div>
   {/if}
 </div>
+</div>
+
+<style>
+  .terminal-container {
+    backface-visibility: hidden;
+    will-change: auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .terminal-content {
+    position: relative;
+    backface-visibility: hidden;
+  }
+
+  .terminal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+    z-index: 1;
+    transform: translate3d(0, 0, 0);
+  }
+</style>
