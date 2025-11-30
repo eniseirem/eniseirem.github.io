@@ -45,27 +45,24 @@ document.querySelectorAll('a[data-mailto], a[href^="mailto:"]').forEach(link => 
     link.addEventListener('click', function(e) {
         e.preventDefault();
         const mailtoUrl = this.getAttribute('href') || this.href;
-        // Send message to parent window (Safari component)
-        try {
-            if (window.parent && window.parent !== window) {
+        
+        // If in iframe, send message to parent (must be synchronous with user gesture)
+        if (window.parent && window.parent !== window) {
+            try {
                 window.parent.postMessage({
                     type: 'mailto',
                     url: mailtoUrl
                 }, '*');
-                // Also try direct navigation as backup
-                setTimeout(() => {
-                    try {
-                        window.location.href = mailtoUrl;
-                    } catch (err) {
-                        // Ignore if it fails
-                    }
-                }, 100);
-            } else {
-                // Not in iframe, use direct navigation
-                window.location.href = mailtoUrl;
+            } catch (error) {
+                // If postMessage fails, try direct navigation immediately (within user gesture)
+                try {
+                    window.location.href = mailtoUrl;
+                } catch (err) {
+                    console.error('Could not open mailto link:', err);
+                }
             }
-        } catch (error) {
-            // If postMessage fails, try direct navigation
+        } else {
+            // Not in iframe, use direct navigation immediately (within user gesture)
             try {
                 window.location.href = mailtoUrl;
             } catch (err) {
