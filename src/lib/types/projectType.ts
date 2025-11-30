@@ -4,6 +4,7 @@ export interface ProjectData {
   icon: string;
   shortDescription: string;
   githubUrl: string;
+  wandbUrl: string;
   readmeUrl: string;
   technologies: string[];
   type: string;

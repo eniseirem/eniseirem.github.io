@@ -16,6 +16,20 @@ function getGitHubUrl(project: any): string {
   return '';
 }
 
+// Helper function to get WandB URL from project links - only if it exists
+// Supports both 'wandb' and 'results' fields for backward compatibility
+function getWandbUrl(project: any): string {
+  if (project.links?.wandb) {
+    return project.links.wandb;
+  }
+  // Check if results field contains a wandb.ai URL (backward compatibility)
+  if (project.links?.results && project.links.results.includes('wandb.ai')) {
+    return project.links.results;
+  }
+  // Return empty string if no WandB link exists
+  return '';
+}
+
 // Helper function to get README URL - only if GitHub URL exists
 // Tries multiple common branch names
 function getReadmeUrl(project: any): string {
@@ -46,6 +60,7 @@ const mapProjects = (projectList: any[], type: string): ProjectData[] => {
     icon: project.icon || 'code',
     shortDescription: project.description,
     githubUrl: getGitHubUrl(project),
+    wandbUrl: getWandbUrl(project),
     readmeUrl: getReadmeUrl(project),
     technologies: project.tech || [],
     type: type,
