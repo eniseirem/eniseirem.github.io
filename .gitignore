@@ -5,7 +5,7 @@ package-lock.json
 .output
 .vercel
 /.svelte-kit
-/build
+# /build - commented out to allow pushing build folder for GitHub Pages
 
 # OS
 .DS_Store
