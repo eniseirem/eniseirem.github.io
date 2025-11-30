@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Song } from "../types/music";
-  import { ALL_MUSIC, fetchPlaylist } from "../utils/musicPlaylists";
+  import { ALL_MUSIC, fetchPlaylist, clearPlaylistCache } from "../utils/musicPlaylists";
   import { onMount } from "svelte";
 
   let musicIndex = 0;
@@ -69,12 +69,12 @@
   });
   
   // Load playlist and fetch missing titles
-  async function loadPlaylist() {
+  async function loadPlaylist(clearCache: boolean = false) {
     isLoading = true;
     const previousCount = $ALL_MUSIC.length;
     
-    // Fetch playlist from API
-    await fetchPlaylist();
+    // Fetch playlist from API (with optional cache clearing)
+    await fetchPlaylist(clearCache);
     isLoading = false;
     
     // If playlist changed, reset index if needed
@@ -233,8 +233,8 @@
     <div class="flex items-center space-x-2">
       <button 
         class="focus:outline-none transform transition hover:scale-110" 
-        on:click={() => loadPlaylist()}
-        title="Refresh playlist"
+        on:click={() => loadPlaylist(true)}
+        title="Reload playlist (clears cache)"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

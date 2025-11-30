@@ -187,6 +187,9 @@ async function fetchPlaylistVideos(): Promise<any[]> {
         
         if (videoIds.length > 0) {
           console.log(`Successfully extracted ${videoIds.length} video IDs from RSS via CORS proxy`);
+          // Limit to first 10 videos
+          videoIds = videoIds.slice(0, 10);
+          console.log(`Limited to first 10 videos: ${videoIds.length} video IDs`);
           // Skip RSS2JSON fallback since we have video IDs
         } else {
           throw new Error('No video IDs extracted from RSS');
@@ -234,7 +237,9 @@ async function fetchPlaylistVideos(): Promise<any[]> {
                   videoIds.push(videoIdMatch[1]);
                 }
               });
-              console.log(`Successfully extracted ${videoIds.length} video IDs via RSS2JSON`);
+              // Limit to first 10 videos
+              videoIds = videoIds.slice(0, 10);
+              console.log(`Successfully extracted ${videoIds.length} video IDs via RSS2JSON (limited to 10)`);
             }
           } else {
             throw new Error(`RSS2JSON failed: ${rssResponse.status} ${rssResponse.statusText}`);
@@ -312,9 +317,23 @@ async function fetchPlaylistVideos(): Promise<any[]> {
   }
 }
 
-// Fetch playlist (client-side)
-export async function fetchPlaylist(): Promise<Song[]> {
+// Clear YouTube playlist cache
+export function clearPlaylistCache(): void {
   try {
+    localStorage.removeItem('youtube_playlist_cache');
+    localStorage.removeItem('youtube_playlist_cache_time');
+    console.log('YouTube playlist cache cleared');
+  } catch (e) {
+    console.warn('Failed to clear cache:', e);
+  }
+}
+
+// Fetch playlist (client-side)
+export async function fetchPlaylist(clearCache: boolean = false): Promise<Song[]> {
+  try {
+    if (clearCache) {
+      clearPlaylistCache();
+    }
     const videos = await fetchPlaylistVideos();
     const songs: Song[] = videos.map((video: any) => ({
       name: video.name || '',
