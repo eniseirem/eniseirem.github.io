@@ -97,14 +97,38 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
             // Remove CDATA markers if present
             textContent = textContent.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
             // Get first paragraph or first 200 characters
-            const firstParagraph = textContent
+            let firstParagraph = textContent
               .split('\n')
               .find((p: string) => p.trim().length > 20) || textContent.substring(0, 200);
             
-            description = firstParagraph
-              .replace(/\s+/g, ' ')
-              .trim()
-              .substring(0, 200);
+            // Clean up whitespace
+            firstParagraph = firstParagraph.replace(/\s+/g, ' ').trim();
+            
+            // If longer than 200 chars, find the last complete sentence
+            if (firstParagraph.length > 200) {
+              const truncated = firstParagraph.substring(0, 200);
+              // Find the last sentence ending (. ! ?) before the 200 char limit
+              const lastSentenceEnd = Math.max(
+                truncated.lastIndexOf('. '),
+                truncated.lastIndexOf('! '),
+                truncated.lastIndexOf('? ')
+              );
+              
+              if (lastSentenceEnd > 50) {
+                // Use the text up to the last complete sentence
+                description = truncated.substring(0, lastSentenceEnd + 1) + '...';
+              } else {
+                // If no sentence ending found, find the last word boundary
+                const lastSpace = truncated.lastIndexOf(' ');
+                if (lastSpace > 50) {
+                  description = truncated.substring(0, lastSpace) + '...';
+                } else {
+                  description = truncated + '...';
+                }
+              }
+            } else {
+              description = firstParagraph;
+            }
           }
           
           // Method 2: Try description tag (fallback)
@@ -206,8 +230,31 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
       description = description
         .replace(/<[^>]*>/g, '') // Remove HTML tags
         .replace(/\s+/g, ' ') // Normalize whitespace
-        .trim()
-        .substring(0, 200);
+        .trim();
+      
+      // If longer than 200 chars, find the last complete sentence
+      if (description.length > 200) {
+        const truncated = description.substring(0, 200);
+        // Find the last sentence ending (. ! ?) before the 200 char limit
+        const lastSentenceEnd = Math.max(
+          truncated.lastIndexOf('. '),
+          truncated.lastIndexOf('! '),
+          truncated.lastIndexOf('? ')
+        );
+        
+        if (lastSentenceEnd > 50) {
+          // Use the text up to the last complete sentence
+          description = truncated.substring(0, lastSentenceEnd + 1) + '...';
+        } else {
+          // If no sentence ending found, find the last word boundary
+          const lastSpace = truncated.lastIndexOf(' ');
+          if (lastSpace > 50) {
+            description = truncated.substring(0, lastSpace) + '...';
+          } else {
+            description = truncated + '...';
+          }
+        }
+      }
       
       // Extract tags from categories if available (handle both array and NodeList)
       let tag_list: string[] = [];
