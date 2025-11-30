@@ -266,6 +266,14 @@
     ],
     "academic": [
       {
+        "title": "🤖 Agentic and Interactive Systems",
+        "icon": "🤖",
+        "description": "Agentic systems are one of the latest and promising trends in the field of AI. Together with interactive systems, which enable communication within the system and the user, the agentic capabilities allow even bigger autonomous behaviour. In this document we will provide an overview of recent relevant research, motivate its work, explain why its emergence is happening right now and show how ethics are related to it.",
+        "tech": ["AI", "Agentic Systems", "Interactive Systems", "Ethics"],
+        "status": "Ongoing",
+        "year": "2025"
+      },
+      {
         "title": "📰 News Summary Automation",
         "icon": "📰",
         "description": "Collection of Python utilities, templates, and best practices for clean, maintainable data science code. Focus on reproducibility and documentation.",
