@@ -129,7 +129,12 @@ async function fetchPlaylistVideos(): Promise<any[]> {
           throw new Error('No entries found in RSS feed');
         }
         
-        entries.forEach((entry: any) => {
+        // Limit to first 10 entries before processing to avoid unnecessary work
+        const maxEntries = 10;
+        const entriesToProcess = Array.from(entries).slice(0, maxEntries);
+        console.log(`Processing first ${entriesToProcess.length} entries (limited to ${maxEntries})`);
+        
+        entriesToProcess.forEach((entry: any) => {
           // Try different methods to get video ID
           let videoId: string | null = null;
           
@@ -187,9 +192,6 @@ async function fetchPlaylistVideos(): Promise<any[]> {
         
         if (videoIds.length > 0) {
           console.log(`Successfully extracted ${videoIds.length} video IDs from RSS via CORS proxy`);
-          // Limit to first 10 videos
-          videoIds = videoIds.slice(0, 10);
-          console.log(`Limited to first 10 videos: ${videoIds.length} video IDs`);
           // Skip RSS2JSON fallback since we have video IDs
         } else {
           throw new Error('No video IDs extracted from RSS');
@@ -229,17 +231,20 @@ async function fetchPlaylistVideos(): Promise<any[]> {
             }
             
             if (rssData.items && Array.isArray(rssData.items)) {
+              // Limit to first 10 items before processing
+              const maxItems = 10;
+              const itemsToProcess = rssData.items.slice(0, maxItems);
+              console.log(`Processing first ${itemsToProcess.length} items from RSS2JSON (limited to ${maxItems})`);
+              
               // Extract video IDs from RSS
-              rssData.items.forEach((item: any) => {
+              itemsToProcess.forEach((item: any) => {
                 const link = item.link || '';
                 const videoIdMatch = link.match(/[?&]v=([^&]+)/);
                 if (videoIdMatch) {
                   videoIds.push(videoIdMatch[1]);
                 }
               });
-              // Limit to first 10 videos
-              videoIds = videoIds.slice(0, 10);
-              console.log(`Successfully extracted ${videoIds.length} video IDs via RSS2JSON (limited to 10)`);
+              console.log(`Successfully extracted ${videoIds.length} video IDs via RSS2JSON`);
             }
           } else {
             throw new Error(`RSS2JSON failed: ${rssResponse.status} ${rssResponse.statusText}`);

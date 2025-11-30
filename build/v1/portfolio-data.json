@@ -281,7 +281,7 @@
         "year": "2025",
         "status": "Completed",
         "links": {
-          "results": "https://wandb.ai/eniseirem/SynergyX?nw=nwusereniseirem"
+          "wandb": "https://wandb.ai/eniseirem/SynergyX?nw=nwusereniseirem"
         }
       },
       {

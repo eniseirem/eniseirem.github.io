@@ -30,6 +30,15 @@ function getWandbUrl(project: any): string {
   return '';
 }
 
+// Helper function to get PDF URL from project links - only if it exists
+function getPdfUrl(project: any): string {
+  if (project.links?.pdf) {
+    return project.links.pdf;
+  }
+  // Return empty string if no PDF link exists
+  return '';
+}
+
 // Helper function to get README URL - only if GitHub URL exists
 // Tries multiple common branch names
 function getReadmeUrl(project: any): string {
@@ -61,6 +70,7 @@ const mapProjects = (projectList: any[], type: string): ProjectData[] => {
     shortDescription: project.description,
     githubUrl: getGitHubUrl(project),
     wandbUrl: getWandbUrl(project),
+    pdfUrl: getPdfUrl(project),
     readmeUrl: getReadmeUrl(project),
     technologies: project.tech || [],
     type: type,

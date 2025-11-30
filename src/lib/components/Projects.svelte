@@ -118,6 +118,17 @@
             </div>
             <h3 class="font-semibold flex-grow text-gray-800 truncate">{project.name}</h3>
             <div class="flex items-center gap-1">
+              {#if project.pdfUrl}
+              <button 
+                class="text-gray-500 hover:text-red-600 transition-colors duration-200"
+                on:click|stopPropagation={() => openProjectLink(project.pdfUrl)}
+                title="View PDF"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+              </button>
+              {/if}
               {#if project.wandbUrl}
               <button 
                 class="text-gray-500 hover:text-purple-600 transition-colors duration-200"
@@ -178,8 +189,24 @@
               <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
             </div>
           {:else}
-            {#if selectedProject.githubUrl || selectedProject.wandbUrl}
+            {#if selectedProject.githubUrl || selectedProject.wandbUrl || selectedProject.pdfUrl}
             <div class="mb-4 pb-4 border-b border-gray-200 flex gap-2">
+              {#if selectedProject.pdfUrl}
+              <a 
+                href={selectedProject.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                View PDF
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+              {/if}
               {#if selectedProject.wandbUrl}
               <a 
                 href={selectedProject.wandbUrl}
