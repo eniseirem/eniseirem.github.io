@@ -297,6 +297,18 @@
         }
       },
       {
+        "title": "🎨 DeepArtist : Identify Artist from Art Review",
+        "icon": "🎨",
+        "description": "Machine learning project to identify artists from their artwork using deep learning techniques.",
+        "tech": ["Python", "Deep Learning"],
+        "year": "2020",
+        "status": "Completed",
+        "links": {
+          "github": "https://github.com/SupratimH/applying-ml-use-cases/tree/master/DeepArtist-Identify-Artist-From-Art",
+          "pdf": "https://prezi.com/p/ubtd3irn_jom/dm_hw/"
+        }
+      },
+      {
         "title": "🤖 Big Data Analytics",
         "icon": "🤖",
         "description": "Master's thesis project analyzing large-scale datasets using distributed computing frameworks.",
