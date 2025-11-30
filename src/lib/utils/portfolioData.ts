@@ -50,6 +50,7 @@ export interface PortfolioData {
     company: string;
     period: string;
     focus: string;
+    location?: string;
     responsibilities: string[];
   }>;
   techStack: {

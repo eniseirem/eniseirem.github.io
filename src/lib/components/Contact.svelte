@@ -43,7 +43,10 @@
     } catch (error) {
       // Fallback: try direct navigation (less reliable but might work)
       try {
-        window.location.href = `mailto:${email}`;
+        const browserWindow = typeof globalThis !== 'undefined' ? globalThis.window : (typeof window !== 'undefined' ? window : null);
+        if (browserWindow && (browserWindow as any).location) {
+          (browserWindow as any).location.href = `mailto:${email}`;
+        }
       } catch (err) {
         console.error('Error opening mailto link:', err);
       }
