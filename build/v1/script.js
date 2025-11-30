@@ -44,7 +44,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
 document.querySelectorAll('a[data-mailto], a[href^="mailto:"]').forEach(link => {
     link.addEventListener('click', function(e) {
         e.preventDefault();
-        const mailtoUrl = this.getAttribute('href');
+        const mailtoUrl = this.getAttribute('href') || this.href;
         // Send message to parent window (Safari component)
         try {
             if (window.parent && window.parent !== window) {
@@ -52,8 +52,16 @@ document.querySelectorAll('a[data-mailto], a[href^="mailto:"]').forEach(link => 
                     type: 'mailto',
                     url: mailtoUrl
                 }, '*');
+                // Also try direct navigation as backup
+                setTimeout(() => {
+                    try {
+                        window.location.href = mailtoUrl;
+                    } catch (err) {
+                        // Ignore if it fails
+                    }
+                }, 100);
             } else {
-                // Fallback: try direct navigation
+                // Not in iframe, use direct navigation
                 window.location.href = mailtoUrl;
             }
         } catch (error) {

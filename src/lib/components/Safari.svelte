@@ -115,27 +115,29 @@
     // Try multiple methods to ensure mailto works
     try {
       // Method 1: Direct window.location (most reliable)
-      const browserWindow = typeof globalThis !== 'undefined' ? globalThis.window : (typeof window !== 'undefined' ? window : null);
-      if (browserWindow && browserWindow.location) {
-        browserWindow.location.href = mailtoUrl;
+      if (typeof globalThis !== 'undefined' && globalThis.window && (globalThis.window as any).location) {
+        (globalThis.window as any).location.href = mailtoUrl;
+        return;
       }
     } catch (error) {
-      // Method 2: Create anchor element and click
-      try {
-        const mailLink = document.createElement('a');
-        mailLink.href = mailtoUrl;
-        mailLink.style.display = 'none';
-        document.body.appendChild(mailLink);
-        mailLink.click();
-        // Remove the element after a short delay
-        setTimeout(() => {
-          if (document.body.contains(mailLink)) {
-            document.body.removeChild(mailLink);
-          }
-        }, 100);
-      } catch (err) {
-        console.error('Error opening mailto link:', err);
-      }
+      // Continue to fallback
+    }
+    
+    // Method 2: Create anchor element and click
+    try {
+      const mailLink = document.createElement('a');
+      mailLink.href = mailtoUrl;
+      mailLink.style.display = 'none';
+      document.body.appendChild(mailLink);
+      mailLink.click();
+      // Remove the element after a short delay
+      setTimeout(() => {
+        if (document.body.contains(mailLink)) {
+          document.body.removeChild(mailLink);
+        }
+      }, 100);
+    } catch (err) {
+      console.error('Error opening mailto link:', err);
     }
   }
 
