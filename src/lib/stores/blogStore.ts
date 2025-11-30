@@ -63,13 +63,71 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
         const xmlDoc = parser.parseFromString(proxyData.contents, 'text/xml');
         const rssItems = xmlDoc.querySelectorAll('item');
         
-        items = Array.from(rssItems).map((item: any) => ({
-          title: item.querySelector('title')?.textContent || 'Untitled',
-          link: item.querySelector('link')?.textContent || '',
-          pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
-          description: item.querySelector('description')?.textContent || '',
-          categories: Array.from(item.querySelectorAll('category')).map((cat: any) => cat.textContent)
-        }));
+        items = Array.from(rssItems).map((item: any) => {
+          // Try multiple description sources
+          let description = '';
+          
+          // Method 1: Try content:encoded (Medium uses this with full HTML content)
+          // Need to handle namespace properly
+          let contentEl = null;
+          try {
+            // Try with namespace
+            contentEl = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0];
+          } catch (e) {
+            // Namespace method failed, try without
+          }
+          
+          if (!contentEl) {
+            // Try different ways to find content:encoded
+            const allElements = item.getElementsByTagName('*');
+            for (let i = 0; i < allElements.length; i++) {
+              const el = allElements[i];
+              if (el.localName === 'encoded' || el.tagName === 'content:encoded') {
+                contentEl = el;
+                break;
+              }
+            }
+          }
+          
+          if (contentEl && contentEl.textContent) {
+            // Extract first meaningful paragraph from HTML content
+            const htmlContent = contentEl.textContent;
+            // Remove HTML tags
+            let textContent = htmlContent.replace(/<[^>]*>/g, '');
+            // Remove CDATA markers if present
+            textContent = textContent.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
+            // Get first paragraph or first 200 characters
+            const firstParagraph = textContent
+              .split('\n')
+              .find((p: string) => p.trim().length > 20) || textContent.substring(0, 200);
+            
+            description = firstParagraph
+              .replace(/\s+/g, ' ')
+              .trim()
+              .substring(0, 200);
+          }
+          
+          // Method 2: Try description tag (fallback)
+          if (!description) {
+            const descEl = item.querySelector('description');
+            if (descEl && descEl.textContent) {
+              description = descEl.textContent
+                .replace(/<[^>]*>/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .substring(0, 200);
+            }
+          }
+          
+          return {
+            title: item.querySelector('title')?.textContent || 'Untitled',
+            link: item.querySelector('link')?.textContent || '',
+            pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
+            description: description,
+            contentSnippet: description, // Also set contentSnippet for compatibility
+            categories: Array.from(item.querySelectorAll('category')).map((cat: any) => cat.textContent)
+          };
+        });
         
         console.log(`Successfully parsed ${items.length} Medium posts via CORS proxy`);
       }
