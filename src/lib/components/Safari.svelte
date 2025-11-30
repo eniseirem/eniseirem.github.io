@@ -112,25 +112,29 @@
   }
 
   function openMailApp(mailtoUrl: string) {
-    // Create a temporary anchor element and click it to open Mail app
-    // This is the most reliable way to open mailto links
+    // Try multiple methods to ensure mailto works
     try {
-      const mailLink = document.createElement('a');
-      mailLink.href = mailtoUrl;
-      mailLink.style.display = 'none';
-      document.body.appendChild(mailLink);
-      mailLink.click();
-      // Remove the element after a short delay
-      setTimeout(() => {
-        if (document.body.contains(mailLink)) {
-          document.body.removeChild(mailLink);
-        }
-      }, 100);
+      // Method 1: Direct window.location (most reliable)
+      const browserWindow = typeof globalThis !== 'undefined' ? globalThis.window : (typeof window !== 'undefined' ? window : null);
+      if (browserWindow && browserWindow.location) {
+        browserWindow.location.href = mailtoUrl;
+      }
     } catch (error) {
-      console.error('Error opening mailto link:', error);
-      // Fallback: try using window.location
-      if (typeof globalThis !== 'undefined' && globalThis.window) {
-        globalThis.window.location.href = mailtoUrl;
+      // Method 2: Create anchor element and click
+      try {
+        const mailLink = document.createElement('a');
+        mailLink.href = mailtoUrl;
+        mailLink.style.display = 'none';
+        document.body.appendChild(mailLink);
+        mailLink.click();
+        // Remove the element after a short delay
+        setTimeout(() => {
+          if (document.body.contains(mailLink)) {
+            document.body.removeChild(mailLink);
+          }
+        }, 100);
+      } catch (err) {
+        console.error('Error opening mailto link:', err);
       }
     }
   }

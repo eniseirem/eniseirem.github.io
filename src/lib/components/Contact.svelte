@@ -18,17 +18,31 @@
     return name.substring(0, 2).toUpperCase();
   }
 
-  function openMailApp(email: string) {
-    const mailLink = document.createElement('a');
-    mailLink.href = `mailto:${email}`;
-    mailLink.style.display = 'none';
-    document.body.appendChild(mailLink);
-    mailLink.click();
-    setTimeout(() => {
-      if (document.body.contains(mailLink)) {
-        document.body.removeChild(mailLink);
+  function openMailApp(email: string, event?: MouseEvent) {
+    if (event) {
+      event.preventDefault();
+    }
+    // Try multiple methods to ensure mailto works
+    try {
+      // Method 1: Direct window.location (most reliable)
+      window.location.href = `mailto:${email}`;
+    } catch (error) {
+      // Method 2: Create anchor element and click
+      try {
+        const mailLink = document.createElement('a');
+        mailLink.href = `mailto:${email}`;
+        mailLink.style.display = 'none';
+        document.body.appendChild(mailLink);
+        mailLink.click();
+        setTimeout(() => {
+          if (document.body.contains(mailLink)) {
+            document.body.removeChild(mailLink);
+          }
+        }, 100);
+      } catch (err) {
+        console.error('Error opening mailto link:', err);
       }
-    }, 100);
+    }
   }
 
   function openLink(url: string) {
@@ -162,7 +176,7 @@
               <div class="info-content">
                 <div class="info-label">Email</div>
                 <div class="info-value">
-                  <a href="mailto:{portfolio.personalInfo.email}" on:click|preventDefault={() => openMailApp(portfolio.personalInfo.email)}>
+                  <a href="mailto:{portfolio.personalInfo.email}" on:click={(e) => openMailApp(portfolio.personalInfo.email, e)}>
                     {portfolio.personalInfo.email}
                   </a>
                 </div>
