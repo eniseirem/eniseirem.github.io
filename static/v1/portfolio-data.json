@@ -349,13 +349,6 @@
     ],
     "personal": [
       {
-        "title": "🐍 Pythonic Workflows",
-        "icon": "🐍",
-        "description": "Collection of Python utilities, templates, and best practices for clean, maintainable data science code. Focus on reproducibility and documentation.",
-        "tech": ["Python", "Jupyter", "Poetry"],
-        "status": "Ongoing"
-      },
-      {
         "title": "🤖 TERMINAGENT: Terminate & Trap",
         "icon": "🤖",
         "description": "A browser-based decision game exploring AI alignment and misalignment concepts. Based on Agentic Misalignment: How LLMs Could Be Insider Threats paper.",
