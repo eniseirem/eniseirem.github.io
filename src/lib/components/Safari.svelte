@@ -112,32 +112,33 @@
   }
 
   function openMailApp(mailtoUrl: string) {
-    // Try multiple methods to ensure mailto works
-    try {
-      // Method 1: Direct window.location (most reliable)
-      if (typeof globalThis !== 'undefined' && globalThis.window && (globalThis.window as any).location) {
-        (globalThis.window as any).location.href = mailtoUrl;
-        return;
-      }
-    } catch (error) {
-      // Continue to fallback
-    }
-    
-    // Method 2: Create anchor element and click
+    // Use anchor element click method (works best with user gestures)
+    // This must happen synchronously when called from postMessage handler
     try {
       const mailLink = document.createElement('a');
       mailLink.href = mailtoUrl;
       mailLink.style.display = 'none';
       document.body.appendChild(mailLink);
+      
+      // Click immediately while user gesture context is still valid
       mailLink.click();
-      // Remove the element after a short delay
+      
+      // Clean up after a short delay
       setTimeout(() => {
         if (document.body.contains(mailLink)) {
           document.body.removeChild(mailLink);
         }
       }, 100);
-    } catch (err) {
-      console.error('Error opening mailto link:', err);
+    } catch (error) {
+      // Fallback: try direct navigation
+      try {
+        const browserWindow = typeof globalThis !== 'undefined' ? globalThis.window : (typeof window !== 'undefined' ? window : null);
+        if (browserWindow && (browserWindow as any).location) {
+          (browserWindow as any).location.href = mailtoUrl;
+        }
+      } catch (err) {
+        console.error('Error opening mailto link:', err);
+      }
     }
   }
 

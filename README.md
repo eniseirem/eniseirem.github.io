@@ -2,7 +2,7 @@
  macOS-Themed Portfolio
 </h1>
 
-<br>
+  <br>
 
 A unique, interactive portfolio website inspired by the macOS interface.
 
@@ -16,7 +16,7 @@ A unique, interactive portfolio website inspired by the macOS interface.
 
 ![macOS-Themed Portfolio](https://github.com/user-attachments/assets/2859e409-c4d2-47ce-a810-885c01cddd83)
 
-Powered by [SvelteKit](https://kit.svelte.dev/), [TailwindCSS](https://tailwindcss.com/) and [TypeScript](https://www.typescriptlang.org/).
+  Powered by [SvelteKit](https://kit.svelte.dev/), [TailwindCSS](https://tailwindcss.com/) and [TypeScript](https://www.typescriptlang.org/).
 
 ---
 

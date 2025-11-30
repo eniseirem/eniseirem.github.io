@@ -138,8 +138,8 @@
       }
       // If no artist but we have full title, return empty so name shows full title
       return '';
-    }
-    
+  }
+
     // Fallback
     return '';
   }
@@ -296,7 +296,7 @@
   </div>
 
   {#if currentEmbedUrl}
-    <div class="mb-4">
+  <div class="mb-4">
       <div class="relative w-full max-w-sm mx-auto" style="padding-bottom: 45%;">
         <iframe
           src={currentEmbedUrl}
@@ -307,7 +307,7 @@
           allowfullscreen
           class="absolute top-0 left-0 w-full h-full rounded-lg"
         ></iframe>
-      </div>
+    </div>
     </div>
   {/if}
 

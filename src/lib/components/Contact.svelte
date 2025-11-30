@@ -22,23 +22,28 @@
     if (event) {
       event.preventDefault();
     }
-    // Try multiple methods to ensure mailto works
+    
+    // Use the anchor element click method (works best with user gestures)
+    // This must happen synchronously within the user's click event
     try {
-      // Method 1: Direct window.location (most reliable)
-      window.location.href = `mailto:${email}`;
+      const mailLink = document.createElement('a');
+      mailLink.href = `mailto:${email}`;
+      mailLink.style.display = 'none';
+      document.body.appendChild(mailLink);
+      
+      // Click immediately while user gesture is still valid
+      mailLink.click();
+      
+      // Clean up after a short delay
+      setTimeout(() => {
+        if (document.body.contains(mailLink)) {
+          document.body.removeChild(mailLink);
+        }
+      }, 100);
     } catch (error) {
-      // Method 2: Create anchor element and click
+      // Fallback: try direct navigation (less reliable but might work)
       try {
-        const mailLink = document.createElement('a');
-        mailLink.href = `mailto:${email}`;
-        mailLink.style.display = 'none';
-        document.body.appendChild(mailLink);
-        mailLink.click();
-        setTimeout(() => {
-          if (document.body.contains(mailLink)) {
-            document.body.removeChild(mailLink);
-          }
-        }, 100);
+        window.location.href = `mailto:${email}`;
       } catch (err) {
         console.error('Error opening mailto link:', err);
       }
