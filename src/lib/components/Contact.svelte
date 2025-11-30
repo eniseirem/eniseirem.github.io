@@ -184,7 +184,7 @@
               <div class="info-content">
                 <div class="info-label">Email</div>
                 <div class="info-value">
-                  <a href="mailto:{portfolio.personalInfo.email}" on:click={(e) => openMailApp(portfolio.personalInfo.email, e)}>
+                  <a href="mailto:{portfolio.personalInfo.email}" on:click|preventDefault={(e) => openMailApp(portfolio.personalInfo.email, e)}>
                     {portfolio.personalInfo.email}
                   </a>
                 </div>
