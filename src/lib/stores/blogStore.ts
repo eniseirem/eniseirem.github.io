@@ -135,11 +135,33 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
           if (!description) {
             const descEl = item.querySelector('description');
             if (descEl && descEl.textContent) {
-              description = descEl.textContent
+              let descText = descEl.textContent
                 .replace(/<[^>]*>/g, '')
                 .replace(/\s+/g, ' ')
-                .trim()
-                .substring(0, 200);
+                .trim();
+              
+              // If longer than 200 chars, find the last complete sentence
+              if (descText.length > 200) {
+                const truncated = descText.substring(0, 200);
+                const lastSentenceEnd = Math.max(
+                  truncated.lastIndexOf('. '),
+                  truncated.lastIndexOf('! '),
+                  truncated.lastIndexOf('? ')
+                );
+                
+                if (lastSentenceEnd > 50) {
+                  description = truncated.substring(0, lastSentenceEnd + 1) + '...';
+                } else {
+                  const lastSpace = truncated.lastIndexOf(' ');
+                  if (lastSpace > 50) {
+                    description = truncated.substring(0, lastSpace) + '...';
+                  } else {
+                    description = truncated + '...';
+                  }
+                }
+              } else {
+                description = descText;
+              }
             }
           }
           
