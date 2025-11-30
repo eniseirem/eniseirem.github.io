@@ -330,7 +330,22 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
   }
 }
 
-export async function fetchBlogPosts(maxRetries = 2, delay = 2000) {
+// Clear Medium posts cache
+export function clearBlogCache(): void {
+  try {
+    localStorage.removeItem('medium_posts_cache');
+    localStorage.removeItem('medium_posts_cache_time');
+    console.log('Blog posts cache cleared');
+  } catch (e) {
+    console.warn('Failed to clear blog cache:', e);
+  }
+}
+
+export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: boolean = false) {
+  if (clearCache) {
+    clearBlogCache();
+  }
+  
   let retries = 0;
   const allPosts: BlogPost[] = [...substackPosts]; // Start with Substack posts
   
