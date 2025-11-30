@@ -297,6 +297,17 @@
         }
       },
       {
+        "title": "📚 Literature Review: The Role and Applications of Explainable AI in Medical Sciences",
+        "icon": "📚",
+        "description": "Explainable Artificial Intelligence (xAI) is crucial because it helps us understand how machine learning models make decisions. This is especially needed in medical and biological sciences, where these models often work like \"black boxes.\" While they make good predictions, their lack of transparency makes it hard to trust them in areas like healthcare and drug discovery, where clear reasoning is crucial. This review looks at how xAI is being used and the methods used in three areas: medical imaging, genomics, and drug discovery. It is divided into three parts: a framework for AI's role in science, examples of xAI in these fields, and a discussion of key insights and future directions.",
+        "tech": ["Explainable AI", "Medical Imaging", "Genomics", "Drug Discovery"],
+        "year": "2024",
+        "status": "Completed",
+        "links": {
+          "pdf": "https://drive.google.com/file/d/1HwcZNNrfTZBpIUzOGs9OMk4_E1YglsHw/view?usp=sharing"
+        }
+      },
+      {
         "title": "🎨 DeepArtist : Identify Artist from Art Review",
         "icon": "🎨",
         "description": "Machine learning project to identify artists from their artwork using deep learning techniques.",
