@@ -6,7 +6,6 @@ export interface ProjectData {
   githubUrl: string;
   wandbUrl: string;
   pdfUrl: string;
-  demoUrl: string;
   readmeUrl: string;
   technologies: string[];
   type: string;
