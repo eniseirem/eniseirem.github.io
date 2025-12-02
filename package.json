@@ -3,14 +3,15 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
-		"build:preview": "BASE_PATH='' vite build",
-		"build:production": "BASE_PATH='/macOS-Themed-Portfolio' vite build",
+		"build": "vite build && npm run deploy:copy",
+		"build:preview": "BASE_PATH='' vite build && npm run deploy:copy",
+		"build:production": "BASE_PATH='/macOS-Themed-Portfolio' vite build && npm run deploy:copy",
 		"preview": "vite preview",
 		"preview:local": "npm run build:preview && vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"sync:v1-data": "cp src/lib/data/portfolio-data.json static/v1/portfolio-data.json"
+		"sync:v1-data": "cp src/lib/data/portfolio-data.json static/v1/portfolio-data.json",
+		"deploy:copy": "cp -r build/emotion-field . && cp -r build/v1 ."
 	},
 	"devDependencies": {
 		"@fontsource/fira-mono": "^5.0.0",
