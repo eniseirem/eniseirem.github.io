@@ -61,6 +61,8 @@ let isRunning = false;
 let lastFrameTime = Date.now();
 let fpsCounter = 0;
 let fpsLastUpdate = Date.now();
+let currentFPS = 60;
+const MAX_PARTICLES = 350; // Cap max particles for performance
 
 // Gesture tracking
 let handPositions = [];
@@ -194,38 +196,7 @@ class Particle {
         if (this.y < 0) this.y = canvas.height;
         if (this.y > canvas.height) this.y = 0;
         
-        // Check for color mixing with other particles
-        this.checkColorMixing();
-    }
-
-    // Check if particle is near particles from different hand
-    checkColorMixing() {
-        if (handPositions.length < 2) return;
-        
-        const mixRadius = 50;
-        for (let other of particles) {
-            if (other === this || other.handIndex === this.handIndex) continue;
-            
-            const dx = this.x - other.x;
-            const dy = this.y - other.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            if (dist < mixRadius) {
-                // Mix the colors
-                const rgb1 = this.hexToRgb(this.baseColor);
-                const rgb2 = this.hexToRgb(other.baseColor);
-                const ratio = 1 - (dist / mixRadius);
-                
-                this.mixedColor = `rgb(${
-                    Math.floor((rgb1.r + rgb2.r) / 2)
-                }, ${
-                    Math.floor((rgb1.g + rgb2.g) / 2)
-                }, ${
-                    Math.floor((rgb1.b + rgb2.b) / 2)
-                })`;
-                return;
-            }
-        }
+        // Color mixing removed for performance - was O(n²) complexity
         this.mixedColor = null;
     }
 
@@ -276,7 +247,8 @@ class Particle {
         
         const currentColor = this.getColor();
         
-        if (scene.glow) {
+        // Disable glow effects when FPS < 30 for performance
+        if (scene.glow && currentFPS >= 30) {
             // Glow is stronger for newer particles
             ctx.shadowBlur = 20 * this.life;
             ctx.shadowColor = currentColor;
@@ -370,11 +342,11 @@ function detectMood(handData) {
     });
     const movementArea = (maxX - minX) * (maxY - minY);
     
-    // Detect mood
+    // Detect mood (reduced emission rates for better performance)
     if (detectMood.speed < 0.01 && openness > 0.3) {
         // Slow, open movements
         targetMoodParams.speed = 0.5;
-        targetMoodParams.emission = 3;
+        targetMoodParams.emission = 2; // Reduced from 3
         targetMoodParams.size = 4;
         targetMoodParams.spread = 50;
         targetMoodParams.clustering = 0;
@@ -382,7 +354,7 @@ function detectMood(handData) {
     } else if (detectMood.speed > 0.05 && movementArea > 0.1) {
         // Fast, wide movements
         targetMoodParams.speed = 3;
-        targetMoodParams.emission = 15;
+        targetMoodParams.emission = 8; // Reduced from 15
         targetMoodParams.size = 2;
         targetMoodParams.spread = 200;
         targetMoodParams.clustering = 0;
@@ -390,7 +362,7 @@ function detectMood(handData) {
     } else if (detectMood.speed < 0.03 && movementArea < 0.05) {
         // Small, controlled movements
         targetMoodParams.speed = 1;
-        targetMoodParams.emission = 8;
+        targetMoodParams.emission = 4; // Reduced from 8
         targetMoodParams.size = 3;
         targetMoodParams.spread = 30;
         targetMoodParams.clustering = 0.8;
@@ -398,7 +370,7 @@ function detectMood(handData) {
     } else {
         // Default
         targetMoodParams.speed = 1.5;
-        targetMoodParams.emission = 7;
+        targetMoodParams.emission = 4; // Reduced from 7
         targetMoodParams.size = 3;
         targetMoodParams.spread = 100;
         targetMoodParams.clustering = 0.3;
@@ -576,7 +548,7 @@ function detectSwipe(handData) {
 
 // Create shockwave effect from clap
 function createShockwave(x, y) {
-    const particleCount = 100;
+    const particleCount = 50; // Reduced from 100 for performance
     for (let i = 0; i < particleCount; i++) {
         const angle = (Math.PI * 2 * i) / particleCount;
         const speed = 5 + Math.random() * 5;
@@ -609,7 +581,7 @@ async function initializeHands() {
 
     hands.setOptions({
         maxNumHands: 2,
-        modelComplexity: 1,
+        modelComplexity: 0, // Lower complexity for better performance
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
     });
@@ -696,26 +668,30 @@ function onHandsResults(results) {
             const x2 = (1 - palm2.x) * canvas.width; // Mirror x positions
             const y2 = palm2.y * canvas.height;
             
-            // Create particles along the bridge
-            const bridgeParticles = 5;
-            for (let i = 0; i <= bridgeParticles; i++) {
-                const t = i / bridgeParticles;
-                const x = x1 + (x2 - x1) * t;
-                const y = y1 + (y2 - y1) * t;
-                
-                // Add some wave to the bridge
-                const wave = Math.sin(t * Math.PI * 3 + Date.now() * 0.01) * 20;
-                const perpX = -(y2 - y1);
-                const perpY = (x2 - x1);
-                const perpLen = Math.sqrt(perpX * perpX + perpY * perpY);
-                
-                if (perpLen > 0) {
-                    const finalX = x + (perpX / perpLen) * wave;
-                    const finalY = y + (perpY / perpLen) * wave;
+            // Create particles along the bridge (only if under particle limit)
+            if (particles.length < MAX_PARTICLES) {
+                const bridgeParticles = 3; // Reduced from 5
+                for (let i = 0; i <= bridgeParticles; i++) {
+                    if (particles.length >= MAX_PARTICLES) break;
                     
-                    // Alternate between hand colors
-                    const handIndex = Math.floor(t * 2);
-                    particles.push(new Particle(finalX, finalY, currentMood, handIndex));
+                    const t = i / bridgeParticles;
+                    const x = x1 + (x2 - x1) * t;
+                    const y = y1 + (y2 - y1) * t;
+                    
+                    // Add some wave to the bridge
+                    const wave = Math.sin(t * Math.PI * 3 + Date.now() * 0.01) * 20;
+                    const perpX = -(y2 - y1);
+                    const perpY = (x2 - x1);
+                    const perpLen = Math.sqrt(perpX * perpX + perpY * perpY);
+                    
+                    if (perpLen > 0) {
+                        const finalX = x + (perpX / perpLen) * wave;
+                        const finalY = y + (perpY / perpLen) * wave;
+                        
+                        // Alternate between hand colors
+                        const handIndex = Math.floor(t * 2);
+                        particles.push(new Particle(finalX, finalY, currentMood, handIndex));
+                    }
                 }
             }
             
@@ -747,9 +723,9 @@ function onHandsResults(results) {
                 const x = (1 - middleTip.x) * canvas.width;
                 const y = middleTip.y * canvas.height;
                 
-                // Red angry particles
-                for (let i = 0; i < 50; i++) {
-                    const angle = (Math.PI * 2 * i) / 50;
+                // Red angry particles (reduced count for performance)
+                for (let i = 0; i < 25; i++) { // Reduced from 50
+                    const angle = (Math.PI * 2 * i) / 25;
                     const speed = 3 + Math.random() * 3;
                     const particle = new Particle(x, y, currentMood, index);
                     particle.vx = Math.cos(angle) * speed;
@@ -884,15 +860,22 @@ function onHandsResults(results) {
         }
         
         // Emit particles from hand position (mirror x-coordinate)
-        handData.forEach((hand, idx) => {
-            const palm = hand.landmarks[9];
-            const x = (1 - palm.x) * canvas.width; // Mirror x position
-            const y = palm.y * canvas.height;
-            
-            for (let i = 0; i < moodParams.emission; i++) {
-                particles.push(new Particle(x, y, currentMood, idx));
-            }
-        });
+        // Cap particles to prevent performance issues
+        if (particles.length < MAX_PARTICLES) {
+            handData.forEach((hand, idx) => {
+                const palm = hand.landmarks[9];
+                const x = (1 - palm.x) * canvas.width; // Mirror x position
+                const y = palm.y * canvas.height;
+                
+                // Calculate how many particles we can add without exceeding max
+                const remaining = MAX_PARTICLES - particles.length;
+                const emissionCount = Math.min(moodParams.emission, remaining);
+                
+                for (let i = 0; i < emissionCount; i++) {
+                    particles.push(new Particle(x, y, currentMood, idx));
+                }
+            });
+        }
     }
     
     // Decrease clap cooldown
@@ -974,6 +957,7 @@ function animate() {
     // FPS counter
     fpsCounter++;
     if (now - fpsLastUpdate > 1000) {
+        currentFPS = fpsCounter;
         document.getElementById('fps').textContent = fpsCounter;
         fpsCounter = 0;
         fpsLastUpdate = now;
@@ -1038,6 +1022,13 @@ function animate() {
     }
     
     // Update and draw particles
+    // Enforce max particles limit by removing oldest particles first
+    if (particles.length > MAX_PARTICLES) {
+        // Sort by life (oldest first) and remove excess
+        particles.sort((a, b) => a.life - b.life);
+        particles = particles.slice(0, MAX_PARTICLES);
+    }
+    
     particles = particles.filter(p => {
         p.update();
         p.draw();
@@ -1047,8 +1038,8 @@ function animate() {
     // Update particle count
     document.getElementById('particleCount').textContent = particles.length;
     
-    // Emit ambient particles when no hands detected
-    if (particles.length < 100 && Math.random() < 0.3) {
+    // Emit ambient particles when no hands detected (reduced rate)
+    if (particles.length < 50 && Math.random() < 0.15) { // Reduced from 100 and 0.3
         particles.push(new Particle(
             Math.random() * canvas.width,
             Math.random() * canvas.height,
