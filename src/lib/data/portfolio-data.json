@@ -349,6 +349,18 @@
     ],
     "personal": [
       {
+        "title": "✨ Emotion Field",
+        "icon": "✨",
+        "description": "An interactive web application that uses hand tracking to create dynamic particle effects. Features real-time gesture recognition, customizable scenes, and color palettes for creating beautiful visual auras.",
+        "tech": ["JavaScript", "MediaPipe", "Canvas API"],
+        "status": "Completed",
+        "year": "2025",
+        "links": {
+          "github": "https://github.com/eniseirem/eniseirem.github.io/tree/main/macOS-Themed-Portfolio/static/emotion-field",
+          "demo": "/emotion-field/index.html"
+        }
+      },
+      {
         "title": "🤖 TERMINAGENT: Terminate & Trap",
         "icon": "🤖",
         "description": "A browser-based decision game exploring AI alignment and misalignment concepts. Based on Agentic Misalignment: How LLMs Could Be Insider Threats paper.",

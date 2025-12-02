@@ -72,7 +72,13 @@
 
   function openProjectLink(url: string) {
     if (typeof globalThis !== 'undefined') {
-      globalThis.window.open(url, '_blank');
+      // For relative paths (starting with /), use window.location for same-origin navigation
+      // For absolute URLs, open in new tab
+      if (url.startsWith('/')) {
+        globalThis.window.location.href = url;
+      } else {
+        globalThis.window.open(url, '_blank');
+      }
     }
   }
 
@@ -118,6 +124,18 @@
             </div>
             <h3 class="font-semibold flex-grow text-gray-800 truncate">{project.name}</h3>
             <div class="flex items-center gap-1">
+              {#if project.demoUrl}
+              <button 
+                class="text-gray-500 hover:text-blue-600 transition-colors duration-200"
+                on:click|stopPropagation={() => openProjectLink(project.demoUrl)}
+                title="View Demo"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </button>
+              {/if}
               {#if project.pdfUrl}
               <button 
                 class="text-gray-500 hover:text-red-600 transition-colors duration-200"
