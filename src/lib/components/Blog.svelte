@@ -14,11 +14,13 @@
     let selectedPost: BlogPost | null = null;
     let isLoading: boolean = true;
     let substackScriptLoaded = false;
+  let lastUpdated: string | null = null;
   
     async function loadBlogPosts(clearCache: boolean = false) {
       isLoading = true;
       await fetchBlogPosts(2, 2000, clearCache);
       isLoading = false;
+    lastUpdated = new Date().toLocaleString();
     }
   
     onMount(async () => {
@@ -74,6 +76,9 @@
     </div>
     <div class="flex-grow text-center font-semibold">Blog Posts</div>
     <div class="flex space-x-2 items-center">
+      {#if lastUpdated}
+        <span class="text-xs text-gray-500">Last updated: {lastUpdated}</span>
+      {/if}
       <button 
         class="focus:outline-none transform transition hover:scale-110 text-gray-600 hover:text-gray-800" 
         on:click={() => loadBlogPosts(true)}
