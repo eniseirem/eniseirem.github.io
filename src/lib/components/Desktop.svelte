@@ -6,11 +6,18 @@
 
   let currentTime = new Date();
   let twitterLoaded = false;
+  let twitterContainer: HTMLElement | null = null;
 
   onMount(() => {
     const timer = setInterval(() => {
       currentTime = new Date();
     }, 1000);
+
+    const loadWidgets = () => {
+      if ((window as any).twttr?.widgets?.load) {
+        (window as any).twttr.widgets.load(twitterContainer || undefined);
+      }
+    };
 
     if (typeof document !== "undefined") {
       const existing = document.getElementById("twitter-wjs");
@@ -22,16 +29,12 @@
         script.charset = "utf-8";
         script.onload = () => {
           twitterLoaded = true;
-          if ((window as any).twttr?.widgets?.load) {
-            (window as any).twttr.widgets.load();
-          }
+          loadWidgets();
         };
         document.head.appendChild(script);
       } else {
         twitterLoaded = true;
-        if ((window as any).twttr?.widgets?.load) {
-          (window as any).twttr.widgets.load();
-        }
+        loadWidgets();
       }
     }
 
@@ -75,7 +78,7 @@
 
       <!-- Twitter Widget -->
       <div
-        class="bg-white/10 backdrop-blur-md rounded-xl p-5 text-white w-full md:flex-1 shadow-lg min-w-[300px]"
+        class="bg-white/10 backdrop-blur-md rounded-xl p-5 text-white w-full max-w-sm md:max-w-md shadow-lg min-w-[280px]"
       >
         <div class="flex items-center justify-between mb-3">
           <div class="text-lg font-semibold">Tweets</div>
@@ -87,6 +90,7 @@
             data-theme="dark"
             data-height="360"
             href="https://twitter.com/enisebytes?ref_src=twsrc%5Etfw"
+            bind:this={twitterContainer}
           >
             Tweets by enisebytes
           </a>
