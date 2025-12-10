@@ -40,45 +40,85 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
       }
     }
     
-    // Extract Medium username from portfolio socialLinks.medium
     const mediumUrl = portfolio.socialLinks.medium;
     const mediumMatch = mediumUrl.match(/@([^/]+)/);
     const mediumUsername = mediumMatch ? mediumMatch[1] : 'eniseirem';
     const rssUrl = `https://medium.com/feed/@${mediumUsername}`;
-    
-    // Use CORS proxy to fetch RSS directly (more reliable than RSS2JSON)
-    // Try allorigins.win first, then RSS2JSON as fallback
-    let data: any = null;
+
     let items: any[] = [];
-    
-    // Method 1: Try CORS proxy to fetch and parse RSS directly
+
+    const normalizeDescription = (htmlOrText: string): string => {
+      if (!htmlOrText) return '';
+      let text = htmlOrText
+        .replace(/<!\[CDATA\[/g, '')
+        .replace(/\]\]>/g, '')
+        .replace(/<[^>]*>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (text.length > 200) {
+        const truncated = text.substring(0, 200);
+        const lastSentenceEnd = Math.max(
+          truncated.lastIndexOf('. '),
+          truncated.lastIndexOf('! '),
+          truncated.lastIndexOf('? ')
+        );
+        if (lastSentenceEnd > 50) {
+          text = truncated.substring(0, lastSentenceEnd + 1) + '...';
+        } else {
+          const lastSpace = truncated.lastIndexOf(' ');
+          text = lastSpace > 50 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+        }
+      }
+      return text;
+    };
+
+    // Primary: RSS2JSON (CORS-friendly)
     try {
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-      const proxyResponse = await fetch(proxyUrl);
-      
-      if (proxyResponse.ok) {
-        const proxyData = await proxyResponse.json();
-        // Parse XML manually
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+      const response = await fetch(apiUrl);
+
+      if (response.status === 429) {
+        console.warn('RSS2JSON rate limit; using cache if available.');
+        if (cached) {
+          try { return JSON.parse(cached); } catch {}
+        }
+        return [];
+      }
+
+      if (!response.ok) throw new Error(`RSS2JSON failed: ${response.status} ${response.statusText}`);
+
+      const data = await response.json();
+      if (data?.status === 'error') throw new Error(`RSS2JSON error: ${data.message}`);
+
+      if (data?.items && Array.isArray(data.items)) {
+        items = data.items;
+        console.log(`Successfully fetched ${items.length} Medium posts via RSS2JSON`);
+      }
+    } catch (rssErr) {
+      console.warn('RSS2JSON failed, trying jina.ai proxy:', rssErr);
+    }
+
+    // Fallback: jina.ai proxy (CORS-friendly fetch of the RSS XML)
+    if (items.length === 0) {
+      try {
+        const jinaUrl = `https://r.jina.ai/https://medium.com/feed/@${mediumUsername}`;
+        const resp = await fetch(jinaUrl);
+        if (!resp.ok) throw new Error(`jina proxy failed: ${resp.status}`);
+        const xmlString = await resp.text();
+
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(proxyData.contents, 'text/xml');
+        const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
         const rssItems = xmlDoc.querySelectorAll('item');
-        
         items = Array.from(rssItems).map((item: any) => {
-          // Try multiple description sources
-          let description = '';
-          
-          // Method 1: Try content:encoded (Medium uses this with full HTML content)
-          // Need to handle namespace properly
-          let contentEl = null;
-          try {
-            // Try with namespace
-            contentEl = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0];
-          } catch (e) {
-            // Namespace method failed, try without
-          }
-          
+          const title = item.querySelector('title')?.textContent || 'Untitled';
+          const link = item.querySelector('link')?.textContent || '';
+          const pubDate = item.querySelector('pubDate')?.textContent || new Date().toISOString();
+
+          // Prefer content:encoded, else description
+          let rawContent = '';
+          let contentEl: Element | null = null;
+          try { contentEl = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0]; } catch {}
           if (!contentEl) {
-            // Try different ways to find content:encoded
             const allElements = item.getElementsByTagName('*');
             for (let i = 0; i < allElements.length; i++) {
               const el = allElements[i];
@@ -88,142 +128,24 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
               }
             }
           }
-          
-          if (contentEl && contentEl.textContent) {
-            // Extract first meaningful paragraph from HTML content
-            const htmlContent = contentEl.textContent;
-            // Remove HTML tags
-            let textContent = htmlContent.replace(/<[^>]*>/g, '');
-            // Remove CDATA markers if present
-            textContent = textContent.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '');
-            // Get first paragraph or first 200 characters
-            let firstParagraph = textContent
-              .split('\n')
-              .find((p: string) => p.trim().length > 20) || textContent.substring(0, 200);
-            
-            // Clean up whitespace
-            firstParagraph = firstParagraph.replace(/\s+/g, ' ').trim();
-            
-            // If longer than 200 chars, find the last complete sentence
-            if (firstParagraph.length > 200) {
-              const truncated = firstParagraph.substring(0, 200);
-              // Find the last sentence ending (. ! ?) before the 200 char limit
-              const lastSentenceEnd = Math.max(
-                truncated.lastIndexOf('. '),
-                truncated.lastIndexOf('! '),
-                truncated.lastIndexOf('? ')
-              );
-              
-              if (lastSentenceEnd > 50) {
-                // Use the text up to the last complete sentence
-                description = truncated.substring(0, lastSentenceEnd + 1) + '...';
-              } else {
-                // If no sentence ending found, find the last word boundary
-                const lastSpace = truncated.lastIndexOf(' ');
-                if (lastSpace > 50) {
-                  description = truncated.substring(0, lastSpace) + '...';
-                } else {
-                  description = truncated + '...';
-                }
-              }
-            } else {
-              description = firstParagraph;
-            }
-          }
-          
-          // Method 2: Try description tag (fallback)
-          if (!description) {
-            const descEl = item.querySelector('description');
-            if (descEl && descEl.textContent) {
-              let descText = descEl.textContent
-                .replace(/<[^>]*>/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-              
-              // If longer than 200 chars, find the last complete sentence
-              if (descText.length > 200) {
-                const truncated = descText.substring(0, 200);
-                const lastSentenceEnd = Math.max(
-                  truncated.lastIndexOf('. '),
-                  truncated.lastIndexOf('! '),
-                  truncated.lastIndexOf('? ')
-                );
-                
-                if (lastSentenceEnd > 50) {
-                  description = truncated.substring(0, lastSentenceEnd + 1) + '...';
-                } else {
-                  const lastSpace = truncated.lastIndexOf(' ');
-                  if (lastSpace > 50) {
-                    description = truncated.substring(0, lastSpace) + '...';
-                  } else {
-                    description = truncated + '...';
-                  }
-                }
-              } else {
-                description = descText;
-              }
-            }
-          }
-          
+          if (contentEl?.textContent) rawContent = contentEl.textContent;
+          if (!rawContent) rawContent = item.querySelector('description')?.textContent || '';
+
+          const description = normalizeDescription(rawContent);
+          const categories = Array.from(item.querySelectorAll('category')).map((cat: any) => cat.textContent);
+
           return {
-            title: item.querySelector('title')?.textContent || 'Untitled',
-            link: item.querySelector('link')?.textContent || '',
-            pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
-            description: description,
-            contentSnippet: description, // Also set contentSnippet for compatibility
-            categories: Array.from(item.querySelectorAll('category')).map((cat: any) => cat.textContent)
+            title,
+            link,
+            pubDate,
+            description,
+            contentSnippet: description,
+            categories
           };
         });
-        
-        console.log(`Successfully parsed ${items.length} Medium posts via CORS proxy`);
-      }
-    } catch (proxyError) {
-      console.warn('CORS proxy method failed, trying RSS2JSON:', proxyError);
-      
-      // Method 2: Fallback to RSS2JSON
-      try {
-        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-        const response = await fetch(apiUrl);
-        
-        // Handle rate limiting (429) gracefully
-        if (response.status === 429) {
-          console.warn('RSS2JSON API rate limit reached. Using cached data if available.');
-          if (cached) {
-            try {
-              return JSON.parse(cached);
-            } catch (e) {
-              // Invalid cache, return empty
-            }
-          }
-          return [];
-        }
-        
-        if (!response.ok) {
-          throw new Error(`RSS2JSON failed: ${response.status} ${response.statusText}`);
-        }
-        
-        data = await response.json();
-        
-        // Check if response has error
-        if (data && data.status === 'error') {
-          throw new Error(`RSS2JSON error: ${data.message}`);
-        }
-        
-        if (data && data.items && Array.isArray(data.items)) {
-          items = data.items;
-          console.log(`Successfully fetched ${items.length} Medium posts via RSS2JSON`);
-        }
-      } catch (rss2jsonError) {
-        console.error('RSS2JSON also failed:', rss2jsonError);
-        // Return cached data if available
-        if (cached) {
-          try {
-            return JSON.parse(cached);
-          } catch (e) {
-            // Invalid cache
-          }
-        }
-        return [];
+        console.log(`Successfully parsed ${items.length} Medium posts via jina proxy`);
+      } catch (jinaErr) {
+        console.error('jina proxy also failed:', jinaErr);
       }
     }
     
