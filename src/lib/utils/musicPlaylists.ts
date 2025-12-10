@@ -85,182 +85,107 @@ async function fetchPlaylistVideos(): Promise<any[]> {
       }
     }
     
-    // Use CORS proxy to fetch RSS directly (more reliable than RSS2JSON)
     const rssUrl = `https://www.youtube.com/feeds/videos.xml?playlist_id=${PLAYLIST_ID}`;
     let videoIds: string[] = [];
-    
-    // Method 1: Try CORS proxy first (more reliable, no rate limits)
+
+    const parseRssXml = (xmlString: string): string[] => {
+      const ids: string[] = [];
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+      const parserError = xmlDoc.querySelector('parsererror');
+      if (parserError) throw new Error('XML parsing failed');
+
+      let entries = xmlDoc.querySelectorAll('entry');
+      if (entries.length === 0) entries = xmlDoc.getElementsByTagName('entry');
+
+      const maxEntries = 10;
+      const entriesToProcess = Array.from(entries).slice(0, maxEntries);
+      entriesToProcess.forEach((entry: any) => {
+        let videoId: string | null = null;
+
+        const idEl = entry.getElementsByTagName('id')[0];
+        if (idEl?.textContent) {
+          const match = idEl.textContent.match(/yt:video:([a-zA-Z0-9_-]{11})/);
+          if (match?.[1]) videoId = match[1];
+        }
+
+        if (!videoId) {
+          try {
+            const ytVideoId = entry.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015', 'videoId')[0];
+            if (ytVideoId?.textContent) videoId = ytVideoId.textContent.trim();
+          } catch {}
+        }
+
+        if (!videoId) {
+          const linkEls = entry.getElementsByTagName('link');
+          for (let i = 0; i < linkEls.length; i++) {
+            const href = linkEls[i].getAttribute('href') || linkEls[i].textContent;
+            if (href) {
+              const match = href.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+              if (match?.[1]) {
+                videoId = match[1];
+                break;
+              }
+            }
+          }
+        }
+
+        if (!videoId) {
+          const videoIdEls = entry.getElementsByTagName('videoId');
+          if (videoIdEls.length > 0 && videoIdEls[0].textContent) {
+            videoId = videoIdEls[0].textContent.trim();
+          }
+        }
+
+        if (videoId?.length === 11) ids.push(videoId);
+      });
+
+      return ids;
+    };
+
+    // Method 1: Try RSS2JSON (CORS-friendly)
     try {
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-      console.log('Fetching YouTube RSS via CORS proxy...');
-      const proxyResponse = await fetch(proxyUrl);
-      
-      if (proxyResponse.ok) {
-        const proxyData = await proxyResponse.json();
-        
-        if (!proxyData.contents) {
-          console.error('CORS proxy returned empty contents');
-          throw new Error('CORS proxy returned empty contents');
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+      const rssResponse = await fetch(apiUrl);
+
+      if (rssResponse.status === 429) {
+        console.warn('RSS2JSON rate limit; using cache if available.');
+        if (cached) {
+          try { return JSON.parse(cached); } catch {}
         }
-        
-        console.log('CORS proxy returned data, parsing XML...');
-        
-        // Parse XML manually
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(proxyData.contents, 'text/xml');
-        
-        // Check for parsing errors
-        const parserError = xmlDoc.querySelector('parsererror');
-        if (parserError) {
-          console.error('XML parsing error:', parserError.textContent);
-          throw new Error('XML parsing failed');
-        }
-        
-        // Try different selectors for entries
-        let entries = xmlDoc.querySelectorAll('entry');
-        if (entries.length === 0) {
-          // Try alternative namespace
-          entries = xmlDoc.getElementsByTagName('entry');
-        }
-        
-        console.log(`Found ${entries.length} entries in RSS feed`);
-        
-        if (entries.length === 0) {
-          throw new Error('No entries found in RSS feed');
-        }
-        
-        // Limit to first 10 entries before processing to avoid unnecessary work
-        const maxEntries = 10;
-        const entriesToProcess = Array.from(entries).slice(0, maxEntries);
-        console.log(`Processing first ${entriesToProcess.length} entries (limited to ${maxEntries})`);
-        
-        entriesToProcess.forEach((entry: any) => {
-          // Try different methods to get video ID
-          let videoId: string | null = null;
-          
-          // Method 1: Extract from id element (YouTube RSS format: yt:video:VIDEO_ID)
-          const idEl = entry.getElementsByTagName('id')[0];
-          if (idEl && idEl.textContent) {
-            const match = idEl.textContent.match(/yt:video:([a-zA-Z0-9_-]{11})/);
-            if (match && match[1]) {
-              videoId = match[1];
-            }
-          }
-          
-          // Method 2: Try yt:videoId namespace (YouTube RSS format)
-          if (!videoId) {
-            try {
-              const ytVideoId = entry.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015', 'videoId')[0];
-              if (ytVideoId && ytVideoId.textContent) {
-                videoId = ytVideoId.textContent.trim();
-              }
-            } catch (e) {
-              // Namespace method failed, try others
-            }
-          }
-          
-          // Method 3: Extract from link (most reliable fallback)
-          if (!videoId) {
-            const linkEls = entry.getElementsByTagName('link');
-            for (let i = 0; i < linkEls.length; i++) {
-              const linkEl = linkEls[i];
-              const href = linkEl.getAttribute('href') || linkEl.textContent;
-              if (href) {
-                const match = href.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-                if (match && match[1]) {
-                  videoId = match[1];
-                  break;
-                }
-              }
-            }
-          }
-          
-          // Method 4: Try without namespace as last resort
-          if (!videoId) {
-            const videoIdEls = entry.getElementsByTagName('videoId');
-            if (videoIdEls.length > 0 && videoIdEls[0].textContent) {
-              videoId = videoIdEls[0].textContent.trim();
-            }
-          }
-          
-          if (videoId && videoId.length === 11) {
-            videoIds.push(videoId);
-          } else {
-            console.warn('Could not extract video ID from entry:', entry);
-          }
-        });
-        
-        if (videoIds.length > 0) {
-          console.log(`Successfully extracted ${videoIds.length} video IDs from RSS via CORS proxy`);
-          // Skip RSS2JSON fallback since we have video IDs
-        } else {
-          throw new Error('No video IDs extracted from RSS');
+        return [];
+      }
+
+      if (rssResponse.ok) {
+        const rssData = await rssResponse.json();
+        if (rssData.status === 'error') throw new Error(`RSS2JSON error: ${rssData.message}`);
+
+        if (rssData.items && Array.isArray(rssData.items)) {
+          const maxItems = 10;
+          const itemsToProcess = rssData.items.slice(0, maxItems);
+          itemsToProcess.forEach((item: any) => {
+            const link = item.link || '';
+            const match = link.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+            if (match?.[1]) videoIds.push(match[1]);
+          });
         }
       } else {
-        throw new Error(`CORS proxy failed: ${proxyResponse.status}`);
+        throw new Error(`RSS2JSON failed: ${rssResponse.status} ${rssResponse.statusText}`);
       }
-    } catch (proxyError: any) {
-      console.warn('CORS proxy method failed, trying RSS2JSON fallback:', proxyError.message);
-      
-      // Only try RSS2JSON if we don't have any video IDs yet
-      if (videoIds.length === 0) {
-        // Method 2: Fallback to RSS2JSON
-        try {
-          const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-          const rssResponse = await fetch(apiUrl);
-          
-          // Handle rate limiting (429) gracefully
-          if (rssResponse.status === 429) {
-            console.warn('RSS2JSON API rate limit reached. Using cached data if available.');
-            if (cached) {
-              try {
-                return JSON.parse(cached);
-              } catch (e) {
-                // Invalid cache, return empty
-              }
-            }
-            return [];
-          }
-          
-          if (rssResponse.ok) {
-            const rssData = await rssResponse.json();
-            
-            // Check if response has error
-            if (rssData.status === 'error') {
-              throw new Error(`RSS2JSON error: ${rssData.message}`);
-            }
-            
-            if (rssData.items && Array.isArray(rssData.items)) {
-              // Limit to first 10 items before processing
-              const maxItems = 10;
-              const itemsToProcess = rssData.items.slice(0, maxItems);
-              console.log(`Processing first ${itemsToProcess.length} items from RSS2JSON (limited to ${maxItems})`);
-              
-              // Extract video IDs from RSS
-              itemsToProcess.forEach((item: any) => {
-                const link = item.link || '';
-                const videoIdMatch = link.match(/[?&]v=([^&]+)/);
-                if (videoIdMatch) {
-                  videoIds.push(videoIdMatch[1]);
-                }
-              });
-              console.log(`Successfully extracted ${videoIds.length} video IDs via RSS2JSON`);
-            }
-          } else {
-            throw new Error(`RSS2JSON failed: ${rssResponse.status} ${rssResponse.statusText}`);
-          }
-        } catch (rss2jsonError) {
-          console.error('RSS2JSON also failed:', rss2jsonError);
-          // Return cached data if available
-          if (cached) {
-            try {
-              return JSON.parse(cached);
-            } catch (e) {
-              // Invalid cache
-            }
-          }
-          return [];
-        }
+    } catch (rssErr) {
+      console.warn('RSS2JSON failed, trying jina proxy:', (rssErr as Error).message);
+    }
+
+    // Method 2: Fallback to jina.ai proxy (CORS-friendly fetch)
+    if (videoIds.length === 0) {
+      try {
+        const jinaUrl = `https://r.jina.ai/https://www.youtube.com/feeds/videos.xml?playlist_id=${PLAYLIST_ID}`;
+        const resp = await fetch(jinaUrl);
+        if (!resp.ok) throw new Error(`jina proxy failed: ${resp.status}`);
+        const text = await resp.text();
+        videoIds = parseRssXml(text);
+      } catch (jinaErr) {
+        console.error('jina proxy also failed:', jinaErr);
       }
     }
     
