@@ -378,7 +378,7 @@
       {
         "title": "🧬 Sentiment Analysis On Twitter: Sexist Tweets with Isolation Forest",
         "icon": "🧬",
-        "description": "Thesis project exploring anomaly detection algorithms on sentiment analysis.",
+        "description": "This thesis analyzes sexist language on Twitter by combining traditional sentiment-analysis models with an anomaly-detection approach. After collecting and labeling over 12,000 tweets through the Twitter API, hashtag scraping, and the Waseem & Hovy dataset, the text was preprocessed using tokenization, POS-tagging, and n-gram features. Classical machine-learning models (Naive Bayes, Logistic Regression, SVM, KNN) were trained and compared with an Isolation Forest model, treating non-sexist tweets as anomalies. Logistic Regression achieved the strongest supervised performance, while Isolation Forest surprisingly delivered the highest F1-score, showing that anomaly detection can effectively identify sexist content in imbalanced social-media datasets.",
         "tech": ["Python", "Scikit-learn"],
         "year": "2022",
         "status": "Completed"
