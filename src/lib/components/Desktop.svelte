@@ -5,11 +5,35 @@
   import { portfolio } from "../utils/portfolioData";
 
   let currentTime = new Date();
+  let twitterLoaded = false;
 
   onMount(() => {
     const timer = setInterval(() => {
       currentTime = new Date();
     }, 1000);
+
+    if (typeof document !== "undefined") {
+      const existing = document.getElementById("twitter-wjs");
+      if (!existing) {
+        const script = document.createElement("script");
+        script.id = "twitter-wjs";
+        script.src = "https://platform.twitter.com/widgets.js";
+        script.async = true;
+        script.charset = "utf-8";
+        script.onload = () => {
+          twitterLoaded = true;
+          if ((window as any).twttr?.widgets?.load) {
+            (window as any).twttr.widgets.load();
+          }
+        };
+        document.head.appendChild(script);
+      } else {
+        twitterLoaded = true;
+        if ((window as any).twttr?.widgets?.load) {
+          (window as any).twttr.widgets.load();
+        }
+      }
+    }
 
     return () => {
       clearInterval(timer);
@@ -19,37 +43,64 @@
 
 <div class="h-screen w-screen overflow-hidden font-sf">
   <TopBar />
-  <div class="p-4 flex flex-col items-start">
-    <!-- Clock Widget -->
-    <div
-      class="bg-white/10 backdrop-blur-md rounded-xl p-5 text-white w-full max-w-sm mb-3 shadow-lg"
-    >
-      <div class="flex flex-col items-center">
-        <div class="text-5xl font-light mb-1.5">
-          {currentTime.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })}
-        </div>
-        <div class="text-base font-medium mb-2.5">
-          {currentTime.toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </div>
-        {#if portfolio.quote}
-          <div class="quote-widget">
-            <p class="quote-text">"{portfolio.quote.text}"</p>
-            <p class="quote-author">— {portfolio.quote.author}</p>
+  <div class="p-4 flex flex-col items-start w-full">
+    <div class="w-full flex flex-col md:flex-row gap-4">
+      <!-- Clock Widget -->
+      <div
+        class="bg-white/10 backdrop-blur-md rounded-xl p-5 text-white w-full max-w-sm shadow-lg"
+      >
+        <div class="flex flex-col items-center">
+          <div class="text-5xl font-light mb-1.5">
+            {currentTime.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}
           </div>
-        {/if}
+          <div class="text-base font-medium mb-2.5">
+            {currentTime.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+          {#if portfolio.quote}
+            <div class="quote-widget">
+              <p class="quote-text">"{portfolio.quote.text}"</p>
+              <p class="quote-author">— {portfolio.quote.author}</p>
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Twitter Widget -->
+      <div
+        class="bg-white/10 backdrop-blur-md rounded-xl p-5 text-white w-full md:flex-1 shadow-lg min-w-[300px]"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-lg font-semibold">Tweets</div>
+          <div class="text-xs text-white/70">@enisebytes</div>
+        </div>
+        <div class="bg-white/5 rounded-lg p-2 overflow-hidden">
+          <a
+            class="twitter-timeline"
+            data-theme="dark"
+            data-height="360"
+            href="https://twitter.com/enisebytes?ref_src=twsrc%5Etfw"
+          >
+            Tweets by enisebytes
+          </a>
+          {#if twitterLoaded === false}
+            <div class="text-xs text-white/60 mt-2">Loading timeline…</div>
+          {/if}
+        </div>
       </div>
     </div>
 
     <!-- Music Player Widget -->
-    <MusicPlayer />
+    <div class="w-full mt-4">
+      <MusicPlayer />
+    </div>
   </div>
 </div>
 
