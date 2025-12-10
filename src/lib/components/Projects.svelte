@@ -77,7 +77,7 @@
       if (url.startsWith('/')) {
         globalThis.window.location.href = url;
       } else {
-        globalThis.window.open(url, '_blank');
+      globalThis.window.open(url, '_blank');
       }
     }
   }
