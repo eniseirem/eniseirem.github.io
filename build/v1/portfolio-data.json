@@ -370,7 +370,8 @@
         "year": "2025",
         "links": {
           "github": "https://github.com/eniseirem/operator-terminagent",
-          "paper": "https://arxiv.org/abs/2510.05179"
+          "paper": "https://arxiv.org/abs/2510.05179",
+          "demo": "https://terminate-trap.web.app/"
         }
       }
     ],
