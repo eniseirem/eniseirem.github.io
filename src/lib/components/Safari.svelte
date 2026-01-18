@@ -242,7 +242,7 @@
           <button on:click={() => navigateTo('https://www.wikipedia.org')} class="bg-white text-purple-500 px-6 py-2 rounded-full hover:bg-purple-100 transition duration-200">
             Wikipedia
           </button>
-          <button on:click={() => openEndlessHorse('https://claude.ai/public/artifacts/e6bd8ab7-380b-41bb-b8d9-6e7d2c852b47')} class="bg-white text-green-500 px-6 py-2 rounded-full hover:bg-green-100 transition duration-200">
+          <button on:click={() => navigateTo('https://terminate-trap.web.app/')} class="bg-white text-green-500 px-6 py-2 rounded-full hover:bg-green-100 transition duration-200">
             Terminagent Game
           </button>
           <button on:click={() => navigateTo('/v1/index.html')} class="bg-white text-orange-500 px-6 py-2 rounded-full hover:bg-orange-100 transition duration-200">
