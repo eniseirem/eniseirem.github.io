@@ -245,6 +245,7 @@
           <button on:click={() => navigateTo('https://terminate-trap.web.app/')} class="bg-white text-green-500 px-6 py-2 rounded-full hover:bg-green-100 transition duration-200">
             Terminagent Game
           </button>
+          <!-- Updated: 2025-01-19 -->
           <button on:click={() => navigateTo('/v1/index.html')} class="bg-white text-orange-500 px-6 py-2 rounded-full hover:bg-orange-100 transition duration-200">
             enise.com
           </button>
