@@ -5,7 +5,7 @@
     "email": "eniseirem.de@gmail.com",
     "role": "Data Scientist",
     "currentPosition": "M.Sc. Data Science Student at Freie Universität Berlin",
-    "work": "IT Specialist & Data Scientist at Vakıfbank",
+    "work": "Student Researcher at Fraunhofer HHI (Explainable AI Group)",
     "location": {
       "primary": "Berlin, Germany 🇩🇪",
       "secondary": "Istanbul, Turkey 🇹🇷"
@@ -22,8 +22,8 @@
   },
 
   "bio": {
-    "short": "Data scientist and researcher pursuing M.Sc. in Data Science at Freie Universität Berlin, passionate about making AI systems more interpretable and understanding ethics in AI.",
-    "full": "Hello! I'm a data scientist and researcher currently pursuing my Master's in Data Science at Freie Universität Berlin. I'm passionate about making AI systems more interpretable and understanding ethics in AI. I work at Vakıfbank as an IT Specialist & Data Scientist, where I apply cutting-edge data science techniques to real-world monitoring problems. I'm looking to transition more into research-focused roles, where I can contribute to advancing the field of explainable AI and responsible machine learning."
+    "short": "Data scientist and student researcher pursuing an M.Sc. in Data Science at Freie Universität Berlin, currently working in the Explainable AI Group at Fraunhofer HHI.",
+    "full": "Hello! I'm a data scientist and student researcher currently pursuing my Master's in Data Science at Freie Universität Berlin. I'm currently working as a Student Researcher at Fraunhofer HHI in the Explainable AI Group. Previously, I worked at Vakıfbank as an IT Specialist & Data Scientist, where I applied data science techniques to real-world monitoring problems. I'm passionate about making AI systems more interpretable and advancing responsible machine learning through research and real-world applications."
   },
 
   "researchInterests": [
@@ -257,29 +257,24 @@
       {
         "title": "🎛️ ML Pipeline at Vakıfbank",
         "icon": "🎛️",
-        "description": "Developed and deployed machine learning pipelines for monitoring and analytics. Built automated data processing workflows with Python. KMeans, DBScan, iForest, EMA, Prophet and Time Series models for anomaly detection.",
+        "description": "Designed and operated an end-to-end anomaly detection and alerting pipeline for enterprise monitoring. Built minute-level rule engines and ML systems that combine static thresholds with model-based decisioning, orchestrated processing flows with Apache NiFi, and automated the alert lifecycle from detection to closure.",
         "tech": ["Python", "Pandas", "Scikit-learn", "SQL", "NiFi", "ElasticSearch", "Prometheus", "Grafana"],
-        "impact": "Improved monitoring efficiency and reduced false-positive rates. Removed manual SQL-based monitoring codes by 100%.",
+        "impact": "Improved monitoring reliability and reduced false positives by replacing manual SQL-based monitoring with fully automated workflows. Standardized rule configuration, logging, and incident traceability across the monitoring stack.",
         "status": "Confidential",
         "year": "2022-Present"
       }
     ],
     "academic": [
       {
-        "title": "🤖 Agentic and Interactive Systems",
-        "icon": "🤖",
-        "description": "Agentic systems are one of the latest and promising trends in the field of AI. Together with interactive systems, which enable communication within the system and the user, the agentic capabilities allow even bigger autonomous behaviour. In this document we will provide an overview of recent relevant research, motivate its work, explain why its emergence is happening right now and show how ethics are related to it.",
-        "tech": ["AI", "Agentic Systems", "Interactive Systems", "Ethics"],
-        "status": "Ongoing",
-        "year": "2025"
-      },
-      {
         "title": "📰 News Summary Automation",
         "icon": "📰",
         "description": "Collection of Python utilities, templates, and best practices for clean, maintainable data science code. Focus on reproducibility and documentation.",
         "tech": ["Python", "N8N", "BART", "FastAPI", "Docker"],
         "status": "Ongoing",
-        "year": "2025"
+        "year": "2025",
+        "links": {
+          "github": "https://github.com/eniseirem/news-summary-project"
+        }
       },
       {
         "title": "💊 SynergyX",
@@ -349,18 +344,6 @@
     ],
     "personal": [
       {
-        "title": "✨ Emotion Field",
-        "icon": "✨",
-        "description": "An interactive web application that uses hand tracking to create dynamic particle effects. Features real-time gesture recognition, customizable scenes, and color palettes for creating beautiful visual auras.",
-        "tech": ["JavaScript", "MediaPipe", "Canvas API"],
-        "status": "Completed",
-        "year": "2025",
-        "links": {
-          "github": "https://github.com/eniseirem/eniseirem.github.io/tree/main/emotion-field",
-          "demo": "/emotion-field/index.html"
-        }
-      },
-      {
         "title": "🤖 TERMINAGENT: Terminate & Trap",
         "icon": "🤖",
         "description": "A browser-based decision game exploring AI alignment and misalignment concepts. Based on Agentic Misalignment: How LLMs Could Be Insider Threats paper.",
@@ -372,6 +355,18 @@
           "github": "https://github.com/eniseirem/operator-terminagent",
           "paper": "https://arxiv.org/abs/2510.05179",
           "demo": "https://terminate-trap.web.app/"
+        }
+      },
+      {
+        "title": "✨ Emotion Field",
+        "icon": "✨",
+        "description": "An interactive web application that uses hand tracking to create dynamic particle effects. Features real-time gesture recognition, customizable scenes, and color palettes for creating beautiful visual auras.",
+        "tech": ["JavaScript", "MediaPipe", "Canvas API"],
+        "status": "Completed",
+        "year": "2025",
+        "links": {
+          "github": "https://github.com/eniseirem/eniseirem.github.io/tree/main/emotion-field",
+          "demo": "/emotion-field/index.html"
         }
       }
     ],
