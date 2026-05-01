@@ -6,46 +6,50 @@ const PLAYLIST_ID = 'PLTn24eAS2-fvP80Tf8VYzMIS81tS4b_om';
 // Initial empty array - will be populated from API
 export const ALL_MUSIC = writable<Song[]>([]);
 
+function parseTitleToSongParts(rawTitle: string): { name: string; artist: string; fullTitle: string } {
+  let title = (rawTitle || '').trim();
+  if (!title) {
+    return { name: 'Unknown Song', artist: '', fullTitle: '' };
+  }
+
+  // Remove common suffixes while keeping core song title
+  title = title.replace(/\s*\[.*?\]/g, '').replace(/\s*\(.*?\)/g, '').trim();
+
+  const dashPatterns = [
+    /^(.+?)\s*-\s*(.+)$/,  // "Artist - Song"
+    /^(.+?)\s*–\s*(.+)$/,  // "Artist – Song" (en dash)
+    /^(.+?)\s*—\s*(.+)$/,  // "Artist — Song" (em dash)
+  ];
+
+  for (const pattern of dashPatterns) {
+    const match = title.match(pattern);
+    if (!match) continue;
+
+    const artist = match[1].trim();
+    const name = match[2].trim();
+    if (artist.length > 0 && name.length > 0 && artist.length < 100 && name.length < 200) {
+      return { name, artist, fullTitle: rawTitle || title };
+    }
+  }
+
+  // If not parsable as artist-song, keep full title as song name
+  return { name: title || 'Unknown Song', artist: '', fullTitle: rawTitle || title };
+}
+
 // Fetch video title from YouTube oEmbed API (client-side)
 async function fetchVideoTitleFromId(videoId: string): Promise<{ name: string; artist: string; fullTitle: string; youtubeId: string; youtubeEmbedUrl: string; genre: string }> {
   try {
     const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
     if (response.ok) {
       const data = await response.json();
-      let title = data.title || '';
-      
-      // Remove common suffixes
-      title = title.replace(/\s*\[.*?\]/g, '').replace(/\s*\(.*?\)/g, '').trim();
-      
-      // Try to parse "Artist - Song" format
-      const dashPatterns = [
-        /^(.+?)\s*-\s*(.+)$/,  // "Artist - Song"
-        /^(.+?)\s*–\s*(.+)$/,  // "Artist – Song" (en dash)
-        /^(.+?)\s*—\s*(.+)$/,  // "Artist — Song" (em dash)
-      ];
-      
-      let name = title;
-      let artist = '';
-      
-      for (const pattern of dashPatterns) {
-        const match = title.match(pattern);
-        if (match) {
-          const parsedArtist = match[1].trim();
-          const parsedSong = match[2].trim();
-          if (parsedArtist.length > 0 && parsedSong.length > 0 && parsedArtist.length < 100 && parsedSong.length < 200) {
-            name = parsedSong;
-            artist = parsedArtist;
-            break;
-          }
-        }
-      }
+      const parsed = parseTitleToSongParts(data.title || '');
       
       return {
         youtubeId: videoId,
         youtubeEmbedUrl: `https://www.youtube.com/embed/${videoId}`,
-        name: name || 'Unknown Song',
-        artist: artist || '',
-        fullTitle: data.title || title,
+        name: parsed.name || 'Unknown Song',
+        artist: parsed.artist || '',
+        fullTitle: parsed.fullTitle,
         genre: 'Music'
       };
     }
@@ -143,7 +147,7 @@ async function fetchPlaylistVideos(): Promise<any[]> {
       return ids;
     };
 
-    // Method 1: Try RSS2JSON (CORS-friendly)
+    // Method 1: Try RSS2JSON (CORS-friendly) and use its titles directly
     try {
       const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
       const rssResponse = await fetch(apiUrl);
@@ -163,11 +167,32 @@ async function fetchPlaylistVideos(): Promise<any[]> {
         if (rssData.items && Array.isArray(rssData.items)) {
           const maxItems = 10;
           const itemsToProcess = rssData.items.slice(0, maxItems);
-          itemsToProcess.forEach((item: any) => {
+          const rssVideos = itemsToProcess.map((item: any) => {
             const link = item.link || '';
             const match = link.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-            if (match?.[1]) videoIds.push(match[1]);
-          });
+            const videoId = match?.[1] || '';
+            if (!videoId) return null;
+
+            const parsed = parseTitleToSongParts(item.title || '');
+            return {
+              youtubeId: videoId,
+              youtubeEmbedUrl: `https://www.youtube.com/embed/${videoId}`,
+              name: parsed.name || 'Unknown Song',
+              artist: parsed.artist || '',
+              fullTitle: parsed.fullTitle,
+              genre: 'Music'
+            };
+          }).filter(Boolean);
+
+          if (rssVideos.length > 0) {
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(rssVideos));
+              localStorage.setItem(cacheTimeKey, Date.now().toString());
+            } catch (e) {
+              // localStorage might be disabled, ignore
+            }
+            return rssVideos as any[];
+          }
         }
       } else {
         throw new Error(`RSS2JSON failed: ${rssResponse.status} ${rssResponse.statusText}`);
