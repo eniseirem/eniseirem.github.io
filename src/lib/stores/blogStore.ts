@@ -2,32 +2,46 @@ import { writable } from 'svelte/store';
 import type { BlogPost } from '../types/blogType';
 import { portfolio } from '../utils/portfolioData';
 
-// Substack posts - add your posts here
-// Note: This is a static list. For dynamic Substack posts, you would need to fetch from their API
-const substackPosts: BlogPost[] = [
+// Fallback Substack posts - only shown if the Substack RSS feed can't be fetched
+const fallbackSubstackPosts: BlogPost[] = [
   {
-    id: 'substack-1',
+    id: 'substack-trustworthy-ai-isnt-optional-the',
     title: 'Trustworthy AI Isn\'t Optional: The Case of ChatGPT and Adam Raine',
     description: 'A reflection on how accountability defines trust in AI.',
-    published_at: new Date().toISOString(), // Update with actual date
-    url: `${portfolio.socialLinks.substack}/p/trustworthy-ai-isnt-optional-the`,
+    published_at: '2025-10-29T16:01:24Z',
+    url: 'https://enisebytes.substack.com/p/trustworthy-ai-isnt-optional-the',
     type: 'substack',
-    substackEmbedUrl: `${portfolio.socialLinks.substack}/p/trustworthy-ai-isnt-optional-the`,
+    substackEmbedUrl: 'https://enisebytes.substack.com/p/trustworthy-ai-isnt-optional-the',
     tag_list: ['AI', 'Ethics', 'Trustworthy AI']
   }
 ];
 
 export const blogPosts = writable<BlogPost[]>([]);
 
-// Fetch Medium posts from RSS feed (client-side)
-async function fetchMediumPosts(): Promise<BlogPost[]> {
+type FeedType = 'medium' | 'substack';
+
+function getMediumRssUrl(): string {
+  const mediumMatch = portfolio.socialLinks.medium.match(/@([^/]+)/);
+  const mediumUsername = mediumMatch ? mediumMatch[1] : 'eniseirem';
+  return `https://medium.com/feed/@${mediumUsername}`;
+}
+
+// Substack profile links look like https://substack.com/@handle; the feed lives at https://handle.substack.com/feed
+function getSubstackRssUrl(): string {
+  const substackMatch = portfolio.socialLinks.substack.match(/@([^/]+)/);
+  const substackHandle = substackMatch ? substackMatch[1] : 'enisebytes';
+  return `https://${substackHandle}.substack.com/feed`;
+}
+
+// Fetch Medium or Substack posts from RSS feed (client-side)
+async function fetchFeedPosts(type: FeedType, rssUrl: string): Promise<BlogPost[]> {
+  const cacheKey = `${type}_posts_cache`;
+  const cacheTimeKey = `${type}_posts_cache_time`;
   try {
     // Check cache first (cache for 1 hour to reduce API calls)
-    const cacheKey = 'medium_posts_cache';
-    const cacheTimeKey = 'medium_posts_cache_time';
     const cached = localStorage.getItem(cacheKey);
     const cacheTime = localStorage.getItem(cacheTimeKey);
-    
+
     if (cached && cacheTime) {
       const age = Date.now() - parseInt(cacheTime);
       const oneHour = 60 * 60 * 1000;
@@ -39,11 +53,6 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
         }
       }
     }
-    
-    const mediumUrl = portfolio.socialLinks.medium;
-    const mediumMatch = mediumUrl.match(/@([^/]+)/);
-    const mediumUsername = mediumMatch ? mediumMatch[1] : 'eniseirem';
-    const rssUrl = `https://medium.com/feed/@${mediumUsername}`;
 
     let items: any[] = [];
 
@@ -92,7 +101,7 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
 
       if (data?.items && Array.isArray(data.items)) {
         items = data.items;
-        console.log(`Successfully fetched ${items.length} Medium posts via RSS2JSON`);
+        console.log(`Successfully fetched ${items.length} ${type} posts via RSS2JSON`);
       }
     } catch (rssErr) {
       console.warn('RSS2JSON failed, trying jina.ai proxy:', rssErr);
@@ -101,7 +110,7 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
     // Fallback: jina.ai proxy (CORS-friendly fetch of the RSS XML)
     if (items.length === 0) {
       try {
-        const jinaUrl = `https://r.jina.ai/https://medium.com/feed/@${mediumUsername}`;
+        const jinaUrl = `https://r.jina.ai/${rssUrl}`;
         const resp = await fetch(jinaUrl);
         if (!resp.ok) throw new Error(`jina proxy failed: ${resp.status}`);
         const xmlString = await resp.text();
@@ -143,7 +152,7 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
             categories
           };
         });
-        console.log(`Successfully parsed ${items.length} Medium posts via jina proxy`);
+        console.log(`Successfully parsed ${items.length} ${type} posts via jina proxy`);
       } catch (jinaErr) {
         console.error('jina proxy also failed:', jinaErr);
       }
@@ -162,11 +171,15 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
     }
     
     // Convert RSS items to BlogPost format (handle both CORS proxy and RSS2JSON formats)
-    const mediumPosts: BlogPost[] = items.map((item: any, index: number) => {
+    const feedPosts: BlogPost[] = items.map((item: any, index: number) => {
       // Handle both formats: CORS proxy (direct RSS) and RSS2JSON
       const title = item.title || 'Untitled';
       const url = item.link || item.guid || '';
-      const pubDate = item.pubDate || item.pubDate || new Date().toISOString();
+      let pubDate = item.pubDate || new Date().toISOString();
+      // RSS2JSON returns "YYYY-MM-DD HH:mm:ss" (UTC), which Safari can't parse
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(pubDate)) {
+        pubDate = pubDate.replace(' ', 'T') + 'Z';
+      }
       
       // Extract description - handle both formats
       let description = item.contentSnippet || item.description || '';
@@ -214,32 +227,32 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
       
       // Generate unique ID from URL or use index
       const urlSlug = url.split('/').pop() || `post-${index}`;
-      const id = `medium-${urlSlug}`;
-      
+      const id = `${type}-${urlSlug}`;
+
       return {
         id: id,
         title: title,
         description: description || 'No description available',
         published_at: pubDate,
         url: url,
-        type: 'medium',
+        type: type,
+        ...(type === 'substack' ? { substackEmbedUrl: url } : {}),
         tag_list: tag_list
       };
     });
-    
+
     // Cache the results
     try {
-      localStorage.setItem(cacheKey, JSON.stringify(mediumPosts));
+      localStorage.setItem(cacheKey, JSON.stringify(feedPosts));
       localStorage.setItem(cacheTimeKey, Date.now().toString());
     } catch (e) {
       // localStorage might be disabled, ignore
     }
-    
-    return mediumPosts;
+
+    return feedPosts;
   } catch (error) {
-    console.error('Error fetching Medium posts:', error);
+    console.error(`Error fetching ${type} posts:`, error);
     // Try to return cached data as fallback
-    const cacheKey = 'medium_posts_cache';
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       try {
@@ -252,11 +265,13 @@ async function fetchMediumPosts(): Promise<BlogPost[]> {
   }
 }
 
-// Clear Medium posts cache
+// Clear Medium and Substack posts cache
 export function clearBlogCache(): void {
   try {
-    localStorage.removeItem('medium_posts_cache');
-    localStorage.removeItem('medium_posts_cache_time');
+    for (const type of ['medium', 'substack']) {
+      localStorage.removeItem(`${type}_posts_cache`);
+      localStorage.removeItem(`${type}_posts_cache_time`);
+    }
     console.log('Blog posts cache cleared');
   } catch (e) {
     console.warn('Failed to clear blog cache:', e);
@@ -269,15 +284,17 @@ export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: b
   }
   
   let retries = 0;
-  const allPosts: BlogPost[] = [...substackPosts]; // Start with Substack posts
-  
+  const allPosts: BlogPost[] = [];
+
   while (retries < maxRetries) {
     try {
-      // Fetch Medium posts directly from client-side
-      const mediumPosts = await fetchMediumPosts();
-      if (Array.isArray(mediumPosts) && mediumPosts.length > 0) {
-        allPosts.push(...mediumPosts);
-      }
+      // Fetch Medium and Substack posts directly from client-side
+      const [mediumPosts, substackPosts] = await Promise.all([
+        fetchFeedPosts('medium', getMediumRssUrl()),
+        fetchFeedPosts('substack', getSubstackRssUrl())
+      ]);
+      allPosts.push(...mediumPosts);
+      allPosts.push(...(substackPosts.length > 0 ? substackPosts : fallbackSubstackPosts));
       
       // Sort by published date (newest first)
       allPosts.sort((a, b) => {
@@ -291,8 +308,8 @@ export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: b
       // If it's a rate limit error, don't retry immediately
       if (error?.message?.includes('429') || error?.status === 429) {
         console.warn('Rate limit reached. Using cached or fallback data.');
-        // Still show Substack posts even if Medium fails
-        blogPosts.set(allPosts);
+        // Still show fallback Substack posts even if fetching fails
+        blogPosts.set(allPosts.length > 0 ? allPosts : fallbackSubstackPosts);
         return;
       }
       
@@ -306,6 +323,6 @@ export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: b
     }
   }
   
-  // If fetching fails, still show Substack posts
-  blogPosts.set(allPosts);
+  // If fetching fails, still show fallback Substack posts
+  blogPosts.set(allPosts.length > 0 ? allPosts : fallbackSubstackPosts);
 }

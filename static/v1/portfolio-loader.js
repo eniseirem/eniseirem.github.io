@@ -163,8 +163,7 @@
                     </div>
                     <div style="color: #666; font-size: 14px; margin-bottom: 8px;">📍 ${edu.location}</div>
                     ${edu.status ? `<div style="color: #666; font-size: 13px; margin-bottom: 8px;"><strong>Status:</strong> ${edu.status}</div>` : ''}
-                    ${edu.description ? `<div style="color: #666; font-size: 14px; margin-top: 8px; font-style: italic;">${edu.description}</div>` : ''}
-                </div>
+                    ${edu.description ? `<div style="color: #666; font-size: 14px; margin-top: 8px; font-style: italic;">${edu.description}</div>` : ''}                </div>
             `).join('');
         }
         
@@ -207,6 +206,49 @@
             updateText('[data-portfolio="experience-period"]', firstExp.period);
         }
         
+        // Update tech stack
+        const techStackGrid = document.querySelector('[data-portfolio="tech-stack"]');
+        if (techStackGrid && portfolio.techStack) {
+            const tags = (items, extraClass) => items.map(item => {
+                const name = typeof item === 'string' ? item : item.name;
+                const cls = extraClass || (typeof item === 'string' ? '' : name.toLowerCase());
+                return `<span class="skill-tag${cls ? ' ' + cls : ''}">${name}</span>`;
+            }).join('');
+            const categories = [
+                { title: '💻 Programming Languages', items: portfolio.techStack.languages },
+                { title: '🐍 ML Ecosystem', items: portfolio.techStack.mlFrameworks },
+                { title: '🌐 Web Frameworks', items: portfolio.techStack.webFrameworks },
+                { title: '⚙️ Tools & Technologies', items: portfolio.techStack.tools },
+                { title: '🔬 Currently Exploring', items: portfolio.techStack.currentlyExploring, extraClass: 'exploring', fullWidth: true }
+            ].filter(category => category.items && category.items.length > 0);
+            techStackGrid.innerHTML = categories.map(category => `
+                <div class="skill-category${category.fullWidth ? ' full-width' : ''}">
+                    <h4>${category.title}</h4>
+                    <div class="skill-tags">${tags(category.items, category.extraClass)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Update spoken languages
+        const languageGrid = document.querySelector('[data-portfolio="spoken-languages"]');
+        if (languageGrid && portfolio.spokenLanguages && portfolio.spokenLanguages.length > 0) {
+            languageGrid.innerHTML = portfolio.spokenLanguages.map(lang => {
+                const levelClass = lang.level === 'Native' ? 'native' :
+                                   lang.level === 'Professional' ? 'professional' : 'beginner';
+                return `
+                    <div class="language-item">
+                        <div class="lang-header">
+                            <span class="lang-name">${lang.flag} ${lang.language}</span>
+                            <span class="proficiency ${levelClass}">${lang.level}</span>
+                        </div>
+                        <div class="proficiency-bar">
+                            <div class="proficiency-fill" style="width: ${lang.proficiency}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         // Update projects
         function renderProject(project) {
             const statusClass = project.status === 'Ongoing' ? 'in-progress' : 
@@ -222,11 +264,20 @@
                 if (project.links.github) {
                     linksHtml += `<a href="${project.links.github}" class="project-link" target="_blank">💻 GitHub</a>`;
                 }
+                if (project.links.demo) {
+                    linksHtml += `<a href="${project.links.demo}" class="project-link" target="_blank">🚀 Demo</a>`;
+                }
+                if (project.links.wandb) {
+                    linksHtml += `<a href="${project.links.wandb}" class="project-link" target="_blank">📈 W&B Results</a>`;
+                }
                 if (project.links.results) {
                     linksHtml += `<a href="${project.links.results}" class="project-link" target="_blank">📈 Results</a>`;
                 }
                 if (project.links.paper) {
                     linksHtml += `<a href="${project.links.paper}" class="project-link" target="_blank">📄 Paper</a>`;
+                }
+                if (project.links.pdf) {
+                    linksHtml += `<a href="${project.links.pdf}" class="project-link" target="_blank">📄 PDF</a>`;
                 }
             }
             if (project.status === 'Confidential') {
