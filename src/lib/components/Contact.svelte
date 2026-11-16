@@ -167,8 +167,12 @@
             <img src="{base}/images/pp.jpg" alt="{portfolio.personalInfo.name}" class="avatar-image" />
           </div>
           <h2 class="details-name">{portfolio.personalInfo.name}</h2>
-          {#if portfolio.personalInfo.pronunciation}
-            <p class="details-pronunciation">"{portfolio.personalInfo.pronunciation}"</p>
+          {#if portfolio.personalInfo.pronunciation || portfolio.personalInfo.pronouns}
+            <p class="details-pronunciation">
+              {#if portfolio.personalInfo.pronunciation}"{portfolio.personalInfo.pronunciation}"{/if}
+              {#if portfolio.personalInfo.pronunciation && portfolio.personalInfo.pronouns} • {/if}
+              {#if portfolio.personalInfo.pronouns}{portfolio.personalInfo.pronouns}{/if}
+            </p>
           {/if}
           <p class="details-title">{portfolio.personalInfo.currentPosition}</p>
           <p class="details-location">{portfolio.personalInfo.location.primary} • {portfolio.personalInfo.location.secondary}</p>
@@ -283,6 +287,37 @@
             {/if}
           </div>
         </div>
+
+        <!-- Organizations Information -->
+        {#if portfolio.organizations && portfolio.organizations.length > 0}
+          <div class="info-section">
+            <h3 class="section-title">Organizations</h3>
+            <div class="info-card">
+              {#each portfolio.organizations as org, index}
+                <div class="info-row">
+                  <div class="info-icon">🤝</div>
+                  <div class="info-content">
+                    <div class="info-label">{org.role}</div>
+                    <div class="info-value">
+                      {#if org.url}
+                        <a href={org.url} target="_blank" on:click|preventDefault={() => openLink(org.url ?? '')}>{org.name}</a>
+                      {:else}
+                        {org.name}
+                      {/if}
+                      <div class="info-meta">{org.period}{#if org.location} • {org.location}{/if}</div>
+                      {#if org.description}
+                        <div class="info-description">{org.description}</div>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+                {#if index < portfolio.organizations.length - 1}
+                  <div class="info-divider"></div>
+                {/if}
+              {/each}
+            </div>
+          </div>
+        {/if}
 
         <!-- Education Information -->
         {#if portfolio.education && portfolio.education.length > 0}

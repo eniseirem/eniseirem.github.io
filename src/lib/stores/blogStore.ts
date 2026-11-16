@@ -278,6 +278,17 @@ export function clearBlogCache(): void {
   }
 }
 
+// Posts cross-posted to both Medium and Substack share a title; keep only the earliest (original) one.
+// Expects posts sorted newest first.
+function dedupeCrossPosts(posts: BlogPost[]): BlogPost[] {
+  const normalizeTitle = (title: string) => title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  const earliestByTitle = new Map<string, BlogPost>();
+  for (const post of posts) {
+    earliestByTitle.set(normalizeTitle(post.title), post);
+  }
+  return posts.filter(post => earliestByTitle.get(normalizeTitle(post.title)) === post);
+}
+
 export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: boolean = false) {
   if (clearCache) {
     clearBlogCache();
@@ -302,7 +313,7 @@ export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: b
         const dateB = new Date(b.published_at).getTime();
         return dateB - dateA;
       });
-      blogPosts.set(allPosts);
+      blogPosts.set(dedupeCrossPosts(allPosts));
       return;
     } catch (error: any) {
       // If it's a rate limit error, don't retry immediately

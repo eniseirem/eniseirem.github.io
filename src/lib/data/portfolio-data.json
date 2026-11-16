@@ -2,6 +2,7 @@
   "personalInfo": {
     "name": "Enise İrem Çolak",
     "pronunciation": "eh-ne-seh",
+    "pronouns": "she/they",
     "email": "eniseirem.de@gmail.com",
     "role": "Machine Learning Engineer",
     "currentPosition": "M.Sc. Data Science Student at Freie Universität Berlin",
@@ -159,6 +160,17 @@
     }
   ],
 
+  "organizations": [
+    {
+      "name": "BLISS",
+      "role": "Partnerships",
+      "period": "04/2026 – Present",
+      "location": "Berlin, Germany",
+      "url": "https://bliss.berlin",
+      "description": "Supporting the organization of AI/ML workshops and community activities"
+    }
+  ],
+
   "techStack": {
     "languages": [
       {
@@ -246,7 +258,7 @@
     {
       "language": "English",
       "flag": "🇬🇧",
-      "level": "Professional",
+      "level": "Advanced (TOEFL 86)",
       "proficiency": 85
     },
     {
@@ -258,21 +270,21 @@
     {
       "language": "German",
       "flag": "🇩🇪",
-      "level": "A1 - In progress 🥨",
-      "proficiency": 25
+      "level": "A2 - In progress 🥨",
+      "proficiency": 40
     }
   ],
 
   "projects": {
     "professional": [
       {
-        "title": "🎛️ ML Pipeline at Vakıfbank",
+        "title": "🎛️ Anomaly Detection & Alerting System at Vakıfbank",
         "icon": "🎛️",
         "description": "Designed and operated an end-to-end anomaly detection and alerting pipeline for enterprise monitoring. Built minute-level rule engines and ML systems that combine static thresholds with model-based decisioning, orchestrated processing flows with Apache NiFi, and automated the alert lifecycle from detection to closure.",
         "tech": ["Python", "Pandas", "Scikit-learn", "SQL", "NiFi", "ElasticSearch", "Prometheus", "Grafana"],
         "impact": "Improved monitoring reliability and reduced false positives by replacing manual SQL-based monitoring with fully automated workflows. Standardized rule configuration, logging, and incident traceability across the monitoring stack.",
         "status": "Confidential",
-        "year": "2022-Present"
+        "year": "2022–2026"
       }
     ],
     "academic": [
@@ -305,7 +317,7 @@
         "description": "End-to-end news processing platform that crawls articles, clusters related stories, generates summaries and labels, categorizes topics, and serves results via webhooks and a dashboard.",
         "tech": ["Python", "N8N", "BART", "FastAPI", "Docker"],
         "status": "Completed",
-        "year": "2025",
+        "year": "2025–2026",
         "links": {
           "github": "https://github.com/eniseirem/news-summary-project"
         }
@@ -488,7 +500,7 @@
 
   "footer": {
     "tagline": "Made with 💖 between Istanbul & Berlin",
-    "copyright": "© 2025 Enise İrem Çolak • All Rights Reserved",
-    "lastUpdated": "November 29, 2025"
+    "copyright": "© 2026 Enise İrem Çolak • All Rights Reserved",
+    "lastUpdated": "November 17, 2026"
   }
 }

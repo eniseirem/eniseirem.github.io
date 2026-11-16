@@ -34,7 +34,8 @@
         
         // Update name
         updateText('[data-portfolio="name"]', portfolio.personalInfo.name);
-        updateText('[data-portfolio="name-pronunciation"]', `Enise "${portfolio.personalInfo.pronunciation}"`);
+        const pronounsText = portfolio.personalInfo.pronouns ? ` (${portfolio.personalInfo.pronouns})` : '';
+        updateText('[data-portfolio="name-pronunciation"]', `Enise "${portfolio.personalInfo.pronunciation}"${pronounsText}`);
         
         // Update title text (for window title bar)
         const titleText = portfolio.personalInfo.name.toLowerCase().replace(/\s+/g, '-') + '.homepage';
@@ -198,6 +199,24 @@
             `).join('');
         }
         
+        // Update organizations
+        const organizationsList = document.querySelector('[data-portfolio="organizations-list"]');
+        if (organizationsList && portfolio.organizations && portfolio.organizations.length > 0) {
+            organizationsList.innerHTML = portfolio.organizations.map(org => `
+                <div class="experience-item">
+                    <div class="exp-header">
+                        <div>
+                            <h3>${org.role}</h3>
+                            <p class="company">${org.url ? `<a href="${org.url}" target="_blank" style="color: inherit;">${org.name}</a>` : org.name}</p>
+                        </div>
+                        <div class="duration">${org.period}</div>
+                    </div>
+                    ${org.location ? `<div style="color: #666; font-size: 14px; margin-bottom: 8px;">📍 ${org.location}</div>` : ''}
+                    ${org.description ? `<ul class="responsibilities"><li>${org.description}</li></ul>` : ''}
+                </div>
+            `).join('');
+        }
+
         // Legacy support for individual experience fields (if they exist)
         if (portfolio.experience && portfolio.experience.length > 0) {
             const firstExp = portfolio.experience[0];
@@ -234,7 +253,7 @@
         if (languageGrid && portfolio.spokenLanguages && portfolio.spokenLanguages.length > 0) {
             languageGrid.innerHTML = portfolio.spokenLanguages.map(lang => {
                 const levelClass = lang.level === 'Native' ? 'native' :
-                                   lang.level === 'Professional' ? 'professional' : 'beginner';
+                                   /^(Professional|Advanced)/.test(lang.level) ? 'professional' : 'beginner';
                 return `
                     <div class="language-item">
                         <div class="lang-header">

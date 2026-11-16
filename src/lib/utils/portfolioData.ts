@@ -4,6 +4,7 @@ export interface PortfolioData {
   personalInfo: {
     name: string;
     pronunciation: string;
+    pronouns?: string;
     email: string;
     role: string;
     currentPosition: string;
@@ -52,6 +53,14 @@ export interface PortfolioData {
     focus: string;
     location?: string;
     responsibilities: string[];
+  }>;
+  organizations?: Array<{
+    name: string;
+    role: string;
+    period: string;
+    location?: string;
+    url?: string;
+    description?: string;
   }>;
   techStack: {
     languages: Array<{
