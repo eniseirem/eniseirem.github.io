@@ -3,7 +3,7 @@
     "name": "Enise İrem Çolak",
     "pronunciation": "eh-ne-seh",
     "email": "eniseirem.de@gmail.com",
-    "role": "Data Scientist",
+    "role": "Machine Learning Engineer",
     "currentPosition": "M.Sc. Data Science Student at Freie Universität Berlin",
     "work": "Student Researcher at Fraunhofer HHI (Explainable AI Group)",
     "location": {
@@ -23,7 +23,7 @@
 
   "bio": {
     "short": "Data scientist and student researcher pursuing an M.Sc. in Data Science at Freie Universität Berlin, currently working in the Explainable AI Group at Fraunhofer HHI.",
-    "full": "Hello! I'm a data scientist and student researcher currently pursuing my Master's in Data Science at Freie Universität Berlin. I'm currently working as a Student Researcher at Fraunhofer HHI in the Explainable AI Group. Previously, I worked at Vakıfbank as an IT Specialist & Data Scientist, where I applied data science techniques to real-world monitoring problems. I'm passionate about making AI systems more interpretable and advancing responsible machine learning through research and real-world applications."
+    "full": "Hello! I'm a data scientist and student researcher currently pursuing my Master's in Data Science at Freie Universität Berlin. I'm currently working as a Student Researcher at Fraunhofer HHI in the Explainable AI Group. Previously, I worked at Vakıfbank as a Data & ML Engineer, where I applied data science techniques to real-world monitoring problems. I'm passionate about making AI systems more interpretable and advancing responsible machine learning through research and real-world applications."
   },
 
   "researchInterests": [
@@ -99,7 +99,7 @@
       "degree": "M.Sc. Data Science",
       "institution": "Freie Universität Berlin",
       "location": "Berlin, Germany",
-      "years": "2024—2026",
+      "years": "04/2024 – Present",
       "status": "In Progress",
       "description": "Focusing on Explainable AI, Genomics, and Interpretable Machine Learning"
     },
@@ -107,32 +107,43 @@
       "degree": "M.Sc. Big Data",
       "institution": "Bahçeşehir University",
       "location": "Istanbul, Turkey",
-      "years": "2020—2023",
+      "years": "2020 – 2023",
       "status": "Completed",
-      "description": "Advanced study in big data technologies, distributed systems, and data analytics"
+      "description": "Dean's List GPA. Master's thesis: sentiment analysis of Twitter data using NLP, machine learning, and anomaly detection techniques"
     },
     {
       "degree": "B.Sc. Software Engineering",
       "institution": "Bahçeşehir University",
       "location": "Istanbul, Turkey",
-      "years": "2015—2019",
+      "years": "2015 – 2019",
       "status": "Completed",
-      "description": "Foundation in software development, algorithms, and computer science fundamentals"
+      "description": "Dean's List GPA. A semester in Italy with BAU Global"
     }
   ],
 
   "experience": [
     {
-      "title": "IT Specialist & Data Scientist",
+      "title": "Student Researcher",
+      "company": "Fraunhofer HHI",
+      "period": "04/2026 – Present",
+      "focus": "Explainable AI, Computer Vision, Model Evaluation",
+      "location": "Berlin, Germany",
+      "responsibilities": [
+        "Researching Explainable AI, human-centered AI, and model evaluation, including agent alignment",
+        "Working with computer vision and SAM2 for visual attention analysis",
+        "Investigating model behavior assessment using computational evaluation methods"
+      ]
+    },
+    {
+      "title": "Data & ML Engineer",
       "company": "Vakıfbank",
-      "period": "2022 — Present",
-      "focus": "Machine Learning / Python Development",
+      "period": "09/2021 – 04/2026",
+      "focus": "Python, Machine Learning, Anomaly Detection, Django",
       "location": "Istanbul, Turkey",
       "responsibilities": [
-        "Developing and deploying machine learning models for system monitoring and anomaly detection",
-        "Building Python-based data pipelines and NiFi automation tools",
-        "Collaborating with cross-functional teams on data-driven projects",
-        "Implementing best practices for code quality and reproducibility"
+        "Developed a centralized monitoring and anomaly detection system covering 4,000+ metrics across banking services and infrastructure",
+        "Built anomaly detection and forecasting models",
+        "Supported department-wide monitoring and automated alerting, with data workflows automated using Apache NiFi"
       ]
     },
     {
@@ -266,11 +277,34 @@
     ],
     "academic": [
       {
+        "title": "🏥 ML for Aging: Pipeline Audit",
+        "icon": "🏥",
+        "description": "Group project (with Lela Tvaliashvili): audited and improved a flawed ML pipeline predicting in-hospital mortality on MIMIC demo data. Fixed data leakage, non-independent train/test splits, unhandled class imbalance, and preprocessing order, then compared Logistic Regression, Random Forest, and XGBoost with grouped cross-validation.",
+        "tech": ["Python", "Scikit-learn", "XGBoost", "Pandas", "Matplotlib"],
+        "status": "Completed",
+        "year": "2026",
+        "links": {
+          "github": "https://github.com/lelatvaliashvili/ML-for-Aging-Audit",
+          "pdf": "https://github.com/lelatvaliashvili/ML-for-Aging-Audit/blob/main/Audit_Report.pdf"
+        }
+      },
+      {
+        "title": "📊 QWIDA: Data Analysis Case Study",
+        "icon": "📊",
+        "description": "Group case study (with Lela Tvaliashvili): data import, cleaning, and tidy-data preparation into a final merged dataset, plus a Streamlit web app built on top of it.",
+        "tech": ["Python", "Jupyter", "Pandas", "Plotly", "Streamlit"],
+        "status": "Completed",
+        "year": "2026",
+        "links": {
+          "github": "https://github.com/eniseirem/Data-Analysis-Case-Study"
+        }
+      },
+      {
         "title": "📰 News Summary Automation",
         "icon": "📰",
-        "description": "Collection of Python utilities, templates, and best practices for clean, maintainable data science code. Focus on reproducibility and documentation.",
+        "description": "End-to-end news processing platform that crawls articles, clusters related stories, generates summaries and labels, categorizes topics, and serves results via webhooks and a dashboard.",
         "tech": ["Python", "N8N", "BART", "FastAPI", "Docker"],
-        "status": "Ongoing",
+        "status": "Completed",
         "year": "2025",
         "links": {
           "github": "https://github.com/eniseirem/news-summary-project"
@@ -343,6 +377,17 @@
       }
     ],
     "personal": [
+      {
+        "title": "🔮 PROJECT ORACLE",
+        "icon": "🔮",
+        "description": "A mobile-first web app for running a live murder-mystery party. Guests join from their phones while a Game Master dashboard controls the game phases and evidence, with an optional big-screen display view.",
+        "tech": ["TypeScript", "Next.js", "Tailwind CSS"],
+        "status": "Completed",
+        "year": "2026",
+        "links": {
+          "github": "https://github.com/eniseirem/project-oracle"
+        }
+      },
       {
         "title": "🤖 TERMINAGENT: Terminate & Trap",
         "icon": "🤖",
