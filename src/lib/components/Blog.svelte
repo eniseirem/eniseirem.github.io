@@ -167,6 +167,13 @@
                 {#if post.type === 'medium'}
                 <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-200 text-green-800">Medium</span>
                 {/if}
+                {#each post.crossPosts ?? [] as crossPost}
+                  {#if crossPost.type === 'substack'}
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-200 text-orange-800">Substack</span>
+                  {:else}
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-200 text-green-800">Medium</span>
+                  {/if}
+                {/each}
               </div>
             </div>
             {#if post.tag_list && post.tag_list.length > 0}
@@ -255,6 +262,24 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
+            </div>
+          {/if}
+          {#if selectedPost.crossPosts && selectedPost.crossPosts.length > 0}
+            <div class="flex flex-wrap items-center gap-2 -mt-2 mb-6">
+              <span class="text-sm text-gray-500">Also published on</span>
+              {#each selectedPost.crossPosts as crossPost}
+                <a
+                  href={crossPost.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center px-3 py-1 text-sm rounded-lg transition-colors {crossPost.type === 'substack' ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}"
+                >
+                  {crossPost.type === 'substack' ? 'Substack' : 'Medium'}
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              {/each}
             </div>
           {/if}
         </div>

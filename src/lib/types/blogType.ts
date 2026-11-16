@@ -11,4 +11,6 @@ export interface BlogPost {
     page_views_count?: number;
     type?: 'substack' | 'medium' | 'devto';
     substackEmbedUrl?: string;
+    // Other platforms the same post was cross-posted to
+    crossPosts?: Array<{ type: 'substack' | 'medium'; url: string }>;
   }

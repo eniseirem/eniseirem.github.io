@@ -278,15 +278,31 @@ export function clearBlogCache(): void {
   }
 }
 
-// Posts cross-posted to both Medium and Substack share a title; keep only the earliest (original) one.
-// Expects posts sorted newest first.
+// Posts cross-posted to both Medium and Substack share a title; merge them into the earliest (original) one,
+// keeping links to the other platforms in crossPosts. Expects posts sorted newest first.
 function dedupeCrossPosts(posts: BlogPost[]): BlogPost[] {
   const normalizeTitle = (title: string) => title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
-  const earliestByTitle = new Map<string, BlogPost>();
+  const groups = new Map<string, BlogPost[]>();
   for (const post of posts) {
-    earliestByTitle.set(normalizeTitle(post.title), post);
+    const key = normalizeTitle(post.title);
+    groups.set(key, [...(groups.get(key) ?? []), post]);
   }
-  return posts.filter(post => earliestByTitle.get(normalizeTitle(post.title)) === post);
+  const merged = new Map<string, BlogPost>();
+  for (const [key, group] of groups) {
+    const original = group[group.length - 1];
+    const copies = group.slice(0, -1).filter(copy => copy.type === 'medium' || copy.type === 'substack');
+    merged.set(key, copies.length === 0 ? original : {
+      ...original,
+      tag_list: original.tag_list?.length ? original.tag_list : copies.find(copy => copy.tag_list?.length)?.tag_list,
+      crossPosts: copies.map(copy => ({ type: copy.type as 'substack' | 'medium', url: copy.url }))
+    });
+  }
+  return posts
+    .filter(post => {
+      const group = groups.get(normalizeTitle(post.title)) ?? [];
+      return group[group.length - 1] === post;
+    })
+    .map(post => merged.get(normalizeTitle(post.title)) ?? post);
 }
 
 export async function fetchBlogPosts(maxRetries = 2, delay = 2000, clearCache: boolean = false) {
